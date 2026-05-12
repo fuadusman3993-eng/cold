@@ -14,6 +14,6 @@ fi
 export PATH="$FLUTTER_PATH/bin:$PATH"
 
 echo "Running Flutter build web..."
-flutter build web --release --web-renderer canvaskit
+flutter build web --release --web-renderer canvaskit -v
 
 echo "Build successful."
