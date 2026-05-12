@@ -14,7 +14,10 @@ fi
 "$FLUTTER_PATH/bin/flutter" config --enable-web
 "$FLUTTER_PATH/bin/flutter" doctor -v
 
+echo "Checking build web help..."
+"$FLUTTER_PATH/bin/flutter" build web -h
+
 echo "Running Flutter build web..."
-"$FLUTTER_PATH/bin/flutter" build web --release --web-renderer canvaskit -v
+"$FLUTTER_PATH/bin/flutter" build web --release -v
 
 echo "Build successful."
