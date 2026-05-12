@@ -10,10 +10,11 @@ if [ ! -d "$FLUTTER_PATH" ]; then
     git clone https://github.com/flutter/flutter.git --depth 1 -b stable "$FLUTTER_PATH"
 fi
 
-# Prepend flutter to path to ensure it's used over any system defaults
-export PATH="$FLUTTER_PATH/bin:$PATH"
+# Enable web support and use the absolute path to the flutter binary
+"$FLUTTER_PATH/bin/flutter" config --enable-web
+"$FLUTTER_PATH/bin/flutter" doctor -v
 
 echo "Running Flutter build web..."
-flutter build web --release --web-renderer canvaskit -v
+"$FLUTTER_PATH/bin/flutter" build web --release --web-renderer canvaskit -v
 
 echo "Build successful."
