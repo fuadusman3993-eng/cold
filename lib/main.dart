@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/theme/app_theme.dart';
-import 'core/widgets/initialization_screen.dart';
+import 'core/widgets/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +23,7 @@ class ColdApp extends StatelessWidget {
       title: 'Cold',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const InitializationScreen(),
+      home: const SplashScreen(),
     );
   }
 }

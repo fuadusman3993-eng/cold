@@ -10,42 +10,67 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
-  int _currentPage = 0;
+  double _currentPageValue = 0.0;
 
   final List<OnboardingData> _pages = [
     OnboardingData(
-      title: 'Welcome to Cold',
-      subtitle: 'Your gateway to the next generation of social media.',
-      imagePath: 'assets/images/onboarding_1.png',
+      title: 'Global Connectivity',
+      subtitle: 'A futuristic network of light connecting the world seamlessly.',
+      imagePath: 'assets/images/connectivity.png',
     ),
     OnboardingData(
-      title: 'Islamic AI Analysis',
-      subtitle: 'Smart content moderation and deep Islamic insights.',
-      imagePath: 'assets/images/onboarding_2.png',
+      title: 'Islamic AI',
+      subtitle: 'Advanced algorithms meeting traditional wisdom for modern insights.',
+      imagePath: 'assets/images/islamic_ai.png',
     ),
     OnboardingData(
-      title: 'Secure & Fast',
-      subtitle: 'Experience seamless communication and content sharing.',
-      // Fallback to a gradient if the 3rd image generation failed
-      useGradient: true, 
+      title: 'Premium Security',
+      subtitle: 'Bank-grade encryption wrapped in a sleek, glass-textured interface.',
+      imagePath: 'assets/images/security.png',
     ),
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _pageController.addListener(() {
+      setState(() {
+        _currentPageValue = _pageController.page ?? 0.0;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
           PageView.builder(
             controller: _pageController,
-            onPageChanged: (int page) {
-              setState(() {
-                _currentPage = page;
-              });
-            },
             itemCount: _pages.length,
             itemBuilder: (context, index) {
-              return OnboardingPage(data: _pages[index]);
+              // Calculate relative position of the page
+              double relativePosition = index - _currentPageValue;
+              
+              // Zoom-in effect for the asset (scales from 0.8 to 1.0 as it comes into focus)
+              // We use 1.0 - (relativePosition.abs() * 0.2) for scale
+              double scale = (1.0 - (relativePosition.abs() * 0.3)).clamp(0.7, 1.0);
+              
+              // Fade-in effect for text (opacity 0 to 1 as it comes into focus)
+              double opacity = (1.0 - relativePosition.abs()).clamp(0.0, 1.0);
+
+              return OnboardingPage(
+                data: _pages[index],
+                scale: scale,
+                opacity: opacity,
+              );
             },
           ),
           Positioned(
@@ -61,24 +86,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     (index) => AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       margin: const EdgeInsets.only(right: 8),
-                      height: 8,
-                      width: _currentPage == index ? 24 : 8,
+                      height: 4,
+                      width: _currentPageValue.round() == index ? 24 : 8,
                       decoration: BoxDecoration(
-                        color: _currentPage == index
+                        color: _currentPageValue.round() == index
                             ? Colors.white
                             : Colors.white24,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 48),
                 ElevatedButton(
                   onPressed: () {
-                    if (_currentPage < _pages.length - 1) {
+                    if (_currentPageValue < _pages.length - 1) {
                       _pageController.nextPage(
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeInOut,
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeOutCubic,
                       );
                     } else {
                       Navigator.pushReplacement(
@@ -95,7 +120,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       );
                     }
                   },
-                  child: Text(_currentPage == _pages.length - 1
+                  child: Text(_currentPageValue.round() == _pages.length - 1
                       ? 'Get Started'
                       : 'Next'),
                 ),
@@ -111,70 +136,78 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 class OnboardingData {
   final String title;
   final String subtitle;
-  final String? imagePath;
-  final bool useGradient;
+  final String imagePath;
 
   OnboardingData({
     required this.title,
     required this.subtitle,
-    this.imagePath,
-    this.useGradient = false,
+    required this.imagePath,
   });
 }
 
 class OnboardingPage extends StatelessWidget {
   final OnboardingData data;
+  final double scale;
+  final double opacity;
 
-  const OnboardingPage({super.key, required this.data});
+  const OnboardingPage({
+    super.key,
+    required this.data,
+    required this.scale,
+    required this.opacity,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
+      color: Colors.black,
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (data.useGradient || data.imagePath == null)
-            Container(
-              height: 300,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: const LinearGradient(
-                  colors: [Colors.blueAccent, Colors.purpleAccent],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: const Icon(Icons.security, size: 100, color: Colors.white),
-            )
-          else
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+          // Animated Asset
+          Transform.scale(
+            scale: scale,
+            child: Opacity(
+              opacity: opacity,
               child: Image.asset(
-                data.imagePath!,
-                height: 300,
+                data.imagePath,
+                height: 350,
                 width: double.infinity,
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) => Container(
-                  height: 300,
-                  color: Colors.grey[900],
-                  child: const Icon(Icons.image_not_supported, size: 50),
+                  height: 350,
+                  color: Colors.black,
+                  child: const Icon(Icons.image_not_supported, size: 50, color: Colors.white24),
                 ),
               ),
             ),
-          const SizedBox(height: 60),
-          Text(
-            data.title,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.displayLarge,
           ),
-          const SizedBox(height: 16),
-          Text(
-            data.subtitle,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge,
+          const SizedBox(height: 40),
+          // Animated Text
+          Opacity(
+            opacity: opacity,
+            child: Column(
+              children: [
+                Text(
+                  data.title,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                    letterSpacing: -1.0,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  data.subtitle,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(height: 100), // Spacing for bottom controls
         ],
       ),
     );
