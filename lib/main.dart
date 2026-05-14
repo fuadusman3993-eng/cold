@@ -42,7 +42,7 @@ class ColdApp extends StatelessWidget {
         Locale('ar', ''),
       ],
       localizationsDelegates: [
-        // const AppLocalizationsDelegate(),
+        const AppLocalizationsDelegate(),
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

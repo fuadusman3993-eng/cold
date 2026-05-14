@@ -32,22 +32,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
     
     final List<OnboardingData> pages = [
       OnboardingData(
-        title: 'Universal Connectivity',
-        subtitle: 'A borderless digital ecosystem built for the global community.',
+        title: l10n.translate('onboarding_1_title'),
+        subtitle: l10n.translate('onboarding_1_subtitle'),
         imagePath: 'assets/images/world_map.png',
       ),
       OnboardingData(
-        title: 'Visionary Intelligence',
-        subtitle: 'Advanced algorithms meeting traditional wisdom for modern insights.',
+        title: l10n.translate('onboarding_2_title'),
+        subtitle: l10n.translate('onboarding_2_subtitle'),
         imagePath: 'assets/images/islamic_ai.png',
       ),
       OnboardingData(
-        title: 'Inviolable Security',
-        subtitle: 'Bank-grade encryption anchored in divine protection.',
+        title: l10n.translate('onboarding_3_title'),
+        subtitle: l10n.translate('onboarding_3_subtitle'),
         imagePath: 'assets/images/security.png',
         arabicOverlay: 'الله خير حافظاً',
       ),
@@ -125,8 +125,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     }
                   },
                   child: Text(_currentPageValue.round() == pages.length - 1
-                      ? 'Commence Journey'
-                      : 'Continue'),
+                      ? l10n.translate('get_started')
+                      : l10n.translate('continue')),
                 ),
               ],
             ),
