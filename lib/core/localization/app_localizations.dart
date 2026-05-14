@@ -8,7 +8,7 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const _localizedValues = {
+  static final Map<String, Map<String, String>> _localizedValues = {
     'en': {
       'onboarding_1_title': 'Universal Connectivity',
       'onboarding_1_subtitle': 'A borderless digital ecosystem built for the global community.',
