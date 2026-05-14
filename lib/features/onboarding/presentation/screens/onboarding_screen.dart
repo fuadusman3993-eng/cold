@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/widgets/language_selector.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -11,25 +13,6 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   double _currentPageValue = 0.0;
-
-  final List<OnboardingData> _pages = [
-    OnboardingData(
-      title: 'Global Connectivity',
-      subtitle: 'A stylized 2D network connecting the world from the heart of Africa.',
-      imagePath: 'assets/images/world_map.png',
-    ),
-    OnboardingData(
-      title: 'Islamic AI',
-      subtitle: 'Advanced algorithms meeting traditional wisdom for modern insights.',
-      imagePath: 'assets/images/islamic_ai.png',
-    ),
-    OnboardingData(
-      title: 'Premium Security',
-      subtitle: 'Bank-grade encryption anchored in divine protection.',
-      imagePath: 'assets/images/security.png',
-      arabicOverlay: 'الله خير حافظاً',
-    ),
-  ];
 
   @override
   void initState() {
@@ -49,20 +32,46 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    final List<OnboardingData> pages = [
+      OnboardingData(
+        title: l10n.translate('onboarding_1_title'),
+        subtitle: l10n.translate('onboarding_1_subtitle'),
+        imagePath: 'assets/images/world_map.png',
+      ),
+      OnboardingData(
+        title: l10n.translate('onboarding_2_title'),
+        subtitle: l10n.translate('onboarding_2_subtitle'),
+        imagePath: 'assets/images/islamic_ai.png',
+      ),
+      OnboardingData(
+        title: l10n.translate('onboarding_3_title'),
+        subtitle: l10n.translate('onboarding_3_subtitle'),
+        imagePath: 'assets/images/security.png',
+        arabicOverlay: 'الله خير حافظاً',
+      ),
+    ];
+
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: const [LanguageSelector()],
+      ),
       body: Stack(
         children: [
           PageView.builder(
             controller: _pageController,
-            itemCount: _pages.length,
+            itemCount: pages.length,
             itemBuilder: (context, index) {
               double relativePosition = index - _currentPageValue;
               double scale = (1.0 - (relativePosition.abs() * 0.3)).clamp(0.7, 1.0);
               double opacity = (1.0 - relativePosition.abs()).clamp(0.0, 1.0);
 
               return OnboardingPage(
-                data: _pages[index],
+                data: pages[index],
                 scale: scale,
                 opacity: opacity,
               );
@@ -77,7 +86,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
-                    _pages.length,
+                    pages.length,
                     (index) => AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       margin: const EdgeInsets.only(right: 8),
@@ -95,7 +104,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const SizedBox(height: 48),
                 ElevatedButton(
                   onPressed: () {
-                    if (_currentPageValue < _pages.length - 1) {
+                    if (_currentPageValue < pages.length - 1) {
                       _pageController.nextPage(
                         duration: const Duration(milliseconds: 600),
                         curve: Curves.easeOutCubic,
@@ -115,9 +124,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       );
                     }
                   },
-                  child: Text(_currentPageValue.round() == _pages.length - 1
-                      ? 'Get Started'
-                      : 'Next'),
+                  child: Text(_currentPageValue.round() == pages.length - 1
+                      ? l10n.translate('get_started')
+                      : l10n.translate('continue')),
                 ),
               ],
             ),
@@ -162,7 +171,6 @@ class OnboardingPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Animated Asset with optional overlay
           Transform.scale(
             scale: scale,
             child: Opacity(
@@ -184,7 +192,7 @@ class OnboardingPage extends StatelessWidget {
                   ),
                   if (data.arabicOverlay != null)
                     Positioned(
-                      top: 155, // Adjusted to sit inside the shield center
+                      top: 155,
                       child: Text(
                         data.arabicOverlay!,
                         textAlign: TextAlign.center,
@@ -192,7 +200,7 @@ class OnboardingPage extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          fontFamily: 'Amiri', // Classic elegant Arabic font
+                          fontFamily: 'Amiri',
                           shadows: [
                             Shadow(
                               color: Colors.black54,
@@ -208,7 +216,6 @@ class OnboardingPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 40),
-          // Animated Text
           Opacity(
             opacity: opacity,
             child: Column(
@@ -231,7 +238,7 @@ class OnboardingPage extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 100), // Spacing for bottom controls
+          const SizedBox(height: 100),
         ],
       ),
     );

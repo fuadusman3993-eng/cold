@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../dashboard/presentation/screens/dashboard_screen.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/widgets/language_selector.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -49,7 +51,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: const [LanguageSelector()],
+      ),
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -60,23 +69,23 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 80),
+                  const SizedBox(height: 40),
                   Text(
-                    'Welcome Back',
+                    l10n.translate('welcome_title'),
                     style: Theme.of(context).textTheme.displayLarge,
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Login to continue to Cold.',
+                    l10n.translate('welcome_subtitle'),
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 60),
                   
                   // Email Field
                   TextFormField(
-                    decoration: const InputDecoration(
-                      hintText: 'Email / Username',
-                      prefixIcon: Icon(Icons.person_outline),
+                    decoration: InputDecoration(
+                      hintText: l10n.translate('email_hint'),
+                      prefixIcon: const Icon(Icons.person_outline),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -85,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   TextFormField(
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
-                      hintText: 'Password',
+                      hintText: l10n.translate('password_hint'),
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -107,9 +116,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {},
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(color: Colors.white70),
+                      child: Text(
+                        l10n.translate('forgot_password'),
+                        style: const TextStyle(color: Colors.white70),
                       ),
                     ),
                   ),
@@ -124,24 +133,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                       );
                     },
-                    child: const Text('Login'),
+                    child: Text(l10n.translate('login_button')),
                   ),
                   
                   const SizedBox(height: 60),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        "Don't have an account? ",
-                        style: TextStyle(color: Colors.white60),
+                      Text(
+                        l10n.translate('no_account'),
+                        style: const TextStyle(color: Colors.white60),
                       ),
                       TextButton(
                         onPressed: () {
                           // Navigate to Register
                         },
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.translate('sign_up'),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
@@ -153,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

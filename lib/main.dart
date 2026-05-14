@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/initialization_screen.dart';
+import 'core/localization/locale_provider.dart';
+import 'core/localization/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,7 +15,14 @@ void main() async {
     anonKey: 'sb_publishable_wndm3lJNp8fzm48hfqJYhg_7coXThda',
   );
 
-  runApp(const ColdApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
+      ],
+      child: const ColdApp(),
+    ),
+  );
 }
 
 class ColdApp extends StatelessWidget {
@@ -19,10 +30,23 @@ class ColdApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localeProvider = Provider.of<LocaleProvider>(context);
+
     return MaterialApp(
       title: 'Cold',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
+      locale: localeProvider.locale,
+      supportedLocales: const [
+        Locale('en', ''),
+        Locale('ar', ''),
+      ],
+      localizationsDelegates: const [
+        AppLocalizationsDelegate(),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: const InitializationScreen(),
     );
   }
