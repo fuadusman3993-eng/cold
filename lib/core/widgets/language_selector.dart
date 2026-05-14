@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../localization/locale_provider.dart';
+import 'package:cold/core/localization/locale_provider.dart';
 
 class LanguageSelector extends StatelessWidget {
   const LanguageSelector({super.key});

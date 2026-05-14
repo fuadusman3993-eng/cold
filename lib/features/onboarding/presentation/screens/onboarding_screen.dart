@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../auth/presentation/screens/login_screen.dart';
-import '../../../core/localization/app_localizations.dart';
-import '../../../core/widgets/language_selector.dart';
+import 'package:cold/features/auth/presentation/screens/login_screen.dart';
+import 'package:cold/core/localization/app_localizations.dart';
+import 'package:cold/core/widgets/language_selector.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

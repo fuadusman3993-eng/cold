@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:cold/features/onboarding/presentation/screens/onboarding_screen.dart';
 
 class InitializationScreen extends StatefulWidget {
   const InitializationScreen({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../dashboard/presentation/screens/dashboard_screen.dart';
-import '../../../core/localization/app_localizations.dart';
-import '../../../core/widgets/language_selector.dart';
+import 'package:cold/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:cold/core/localization/app_localizations.dart';
+import 'package:cold/core/widgets/language_selector.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

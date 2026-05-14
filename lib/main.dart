@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
-import 'core/theme/app_theme.dart';
-import 'core/widgets/initialization_screen.dart';
-import 'core/localization/locale_provider.dart';
-import 'core/localization/app_localizations.dart';
+import 'package:cold/core/theme/app_theme.dart';
+import 'package:cold/core/widgets/initialization_screen.dart';
+import 'package:cold/core/localization/locale_provider.dart';
+import 'package:cold/core/localization/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
