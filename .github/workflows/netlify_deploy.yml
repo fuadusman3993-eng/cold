@@ -21,7 +21,7 @@ jobs:
         run: |
           flutter config --enable-web
           flutter pub get
-          flutter build web --release --base-href "/"
+          flutter build web --release --base-href "/" -v
 
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v2.0
