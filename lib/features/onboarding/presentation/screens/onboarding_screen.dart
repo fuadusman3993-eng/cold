@@ -15,18 +15,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingData> _pages = [
     OnboardingData(
       title: 'Global Connectivity',
-      subtitle: 'A futuristic network of light connecting the world seamlessly.',
-      imagePath: 'assets/images/connectivity.png',
+      subtitle: 'A stylized 2D network connecting the world from the heart of Africa.',
+      imagePath: 'assets/images/world_map.png',
     ),
     OnboardingData(
       title: 'Islamic AI',
-      subtitle: 'Advanced algorithms meeting traditional wisdom for modern insights.',
-      imagePath: 'assets/images/islamic_ai.png',
+      subtitle: 'Minimalist intelligence representing the pursuit of pure knowledge.',
+      imagePath: 'assets/images/ilm_icon.png',
     ),
     OnboardingData(
       title: 'Premium Security',
-      subtitle: 'Bank-grade encryption wrapped in a sleek, glass-textured interface.',
+      subtitle: 'Bank-grade encryption anchored in divine protection.',
       imagePath: 'assets/images/security.png',
+      arabicOverlay: 'الله خير حافظاً',
     ),
   ];
 
@@ -56,14 +57,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             controller: _pageController,
             itemCount: _pages.length,
             itemBuilder: (context, index) {
-              // Calculate relative position of the page
               double relativePosition = index - _currentPageValue;
-              
-              // Zoom-in effect for the asset (scales from 0.8 to 1.0 as it comes into focus)
-              // We use 1.0 - (relativePosition.abs() * 0.2) for scale
               double scale = (1.0 - (relativePosition.abs() * 0.3)).clamp(0.7, 1.0);
-              
-              // Fade-in effect for text (opacity 0 to 1 as it comes into focus)
               double opacity = (1.0 - relativePosition.abs()).clamp(0.0, 1.0);
 
               return OnboardingPage(
@@ -137,11 +132,13 @@ class OnboardingData {
   final String title;
   final String subtitle;
   final String imagePath;
+  final String? arabicOverlay;
 
   OnboardingData({
     required this.title,
     required this.subtitle,
     required this.imagePath,
+    this.arabicOverlay,
   });
 }
 
@@ -165,21 +162,48 @@ class OnboardingPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Animated Asset
+          // Animated Asset with optional overlay
           Transform.scale(
             scale: scale,
             child: Opacity(
               opacity: opacity,
-              child: Image.asset(
-                data.imagePath,
-                height: 350,
-                width: double.infinity,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 350,
-                  color: Colors.black,
-                  child: const Icon(Icons.image_not_supported, size: 50, color: Colors.white24),
-                ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Image.asset(
+                    data.imagePath,
+                    height: 350,
+                    width: double.infinity,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 350,
+                      color: Colors.black,
+                      child: const Icon(Icons.image_not_supported,
+                          size: 50, color: Colors.white24),
+                    ),
+                  ),
+                  if (data.arabicOverlay != null)
+                    Positioned(
+                      top: 155, // Adjusted to sit inside the shield center
+                      child: Text(
+                        data.arabicOverlay!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Amiri', // Classic elegant Arabic font
+                          shadows: [
+                            Shadow(
+                              color: Colors.black54,
+                              blurRadius: 10,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -193,16 +217,16 @@ class OnboardingPage extends StatelessWidget {
                   data.title,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                    letterSpacing: -1.0,
-                  ),
+                        letterSpacing: -1.0,
+                      ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   data.subtitle,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.white70,
-                  ),
+                        color: Colors.white70,
+                      ),
                 ),
               ],
             ),

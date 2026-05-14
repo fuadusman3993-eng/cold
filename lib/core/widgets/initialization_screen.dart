@@ -91,21 +91,22 @@ class _InitializationScreenState extends State<InitializationScreen> {
                   ],
                 ),
               )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Initializing COLD',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.white,
-                          letterSpacing: 2.0,
-                        ),
-                  ),
-                ],
+            : Image.asset(
+                'assets/images/logo_c.png',
+                width: 120,
+                height: 120,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Text(
+                    'C',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 80,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Inter',
+                    ),
+                  );
+                },
               ),
       ),
     );
