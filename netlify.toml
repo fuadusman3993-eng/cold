@@ -1,5 +1,6 @@
 [build]
-  command = "bash netlify_build.sh"
+  # Internal build disabled to save credits; handled by GitHub Actions
+  command = ""
   publish = "build/web"
 
 [build.environment]
