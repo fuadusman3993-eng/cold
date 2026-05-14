@@ -11,9 +11,6 @@ class InitializationScreen extends StatefulWidget {
 }
 
 class _InitializationScreenState extends State<InitializationScreen> {
-  bool _hasError = false;
-  String _errorMessage = '';
-
   @override
   void initState() {
     super.initState();
@@ -21,19 +18,19 @@ class _InitializationScreenState extends State<InitializationScreen> {
   }
 
   Future<void> _initializeApp() async {
-    // Artificial 1.5-second delay to show the branding/splash
-    await Future.delayed(const Duration(milliseconds: 1500));
+    // 2-second hold for the minimalist brand experience
+    await Future.delayed(const Duration(seconds: 2));
     
     try {
-      // Attempt quick Supabase fetch (3-second timeout)
+      // Background Supabase initialization check
       await Supabase.instance.client
           .from('profiles')
           .select()
           .limit(1)
           .maybeSingle()
-          .timeout(const Duration(seconds: 3));
+          .timeout(const Duration(seconds: 2));
     } catch (e) {
-      debugPrint('Supabase initialization bypassed or failed: $e');
+      debugPrint('Initialization check skipped: $e');
     }
 
     if (mounted) {
@@ -49,65 +46,29 @@ class _InitializationScreenState extends State<InitializationScreen> {
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
-        transitionDuration: const Duration(milliseconds: 600),
+        transitionDuration: const Duration(milliseconds: 800),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.black,
       body: Center(
-        child: _hasError
-            ? Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Initialization Failed',
-                      style: Theme.of(context).textTheme.displayMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _errorMessage,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _hasError = false;
-                          _errorMessage = '';
-                        });
-                        _initializeApp();
-                      },
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              )
-            : Image.asset(
-                'assets/images/logo_c.png',
-                width: 120,
-                height: 120,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Text(
-                    'C',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 80,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Inter',
-                    ),
-                  );
-                },
-              ),
+        child: Hero(
+          tag: 'app_logo',
+          child: Text(
+            'C',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 120, // Bold, iconic focus
+              fontWeight: FontWeight.w900,
+              fontFamily: 'Inter',
+              letterSpacing: -5,
+            ),
+          ),
+        ),
       ),
     );
   }
