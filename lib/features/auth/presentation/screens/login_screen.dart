@@ -51,13 +51,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    // final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: const [LanguageSelector()],
+        actions: const [
+          // LanguageSelector(),
+        ],
       ),
       body: SafeArea(
         child: FadeTransition(
@@ -71,21 +73,21 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 children: [
                   const SizedBox(height: 40),
                   Text(
-                    l10n.translate('welcome_title'),
+                    'Welcome to the Digital Frontier',
                     style: Theme.of(context).textTheme.displayLarge,
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    l10n.translate('welcome_subtitle'),
+                    'Authenticate to access your secure ecosystem.',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 60),
                   
                   // Email Field
                   TextFormField(
-                    decoration: InputDecoration(
-                      hintText: l10n.translate('email_hint'),
-                      prefixIcon: const Icon(Icons.person_outline),
+                    decoration: const InputDecoration(
+                      hintText: 'Email / Username',
+                      prefixIcon: Icon(Icons.person_outline),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -94,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   TextFormField(
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
-                      hintText: l10n.translate('password_hint'),
+                      hintText: 'Password',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -116,9 +118,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {},
-                      child: Text(
-                        l10n.translate('forgot_password'),
-                        style: const TextStyle(color: Colors.white70),
+                      child: const Text(
+                        'Recover Access',
+                        style: TextStyle(color: Colors.white70),
                       ),
                     ),
                   ),
@@ -133,24 +135,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                       );
                     },
-                    child: Text(l10n.translate('login_button')),
+                    child: const Text('Authorize'),
                   ),
                   
                   const SizedBox(height: 60),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        l10n.translate('no_account'),
-                        style: const TextStyle(color: Colors.white60),
+                      const Text(
+                        'New to the ecosystem? ',
+                        style: TextStyle(color: Colors.white60),
                       ),
                       TextButton(
                         onPressed: () {
                           // Navigate to Register
                         },
-                        child: Text(
-                          l10n.translate('sign_up'),
-                          style: const TextStyle(
+                        child: const Text(
+                          'Create Identity',
+                          style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
