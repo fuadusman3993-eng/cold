@@ -10,6 +10,8 @@ fi
 export PATH="$PATH:$FLUTTER_PATH/bin"
 
 flutter config --enable-web
+flutter clean
+flutter pub get
 flutter build web --release --base-href "/"
 
 echo "Build successful."
