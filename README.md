@@ -1,4 +1,4 @@
-# Cold - The Next Generation of Social Media
+# Cold - The Next Generation Social Platform (Redesigned) - The Next Generation of Social Media
 
 ![Cold Design Vision](assets/images/onboarding_1.png)
 
