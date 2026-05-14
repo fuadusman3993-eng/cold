@@ -20,8 +20,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     OnboardingData(
       title: 'Islamic AI',
-      subtitle: 'Minimalist intelligence representing the pursuit of pure knowledge.',
-      imagePath: 'assets/images/ilm_icon.png',
+      subtitle: 'Advanced algorithms meeting traditional wisdom for modern insights.',
+      imagePath: 'assets/images/islamic_ai.png',
     ),
     OnboardingData(
       title: 'Premium Security',

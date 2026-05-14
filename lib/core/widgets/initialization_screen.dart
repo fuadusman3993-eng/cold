@@ -53,20 +53,16 @@ class _InitializationScreenState extends State<InitializationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
         child: Hero(
           tag: 'app_logo',
-          child: Text(
-            'C',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 120, // Bold, iconic focus
-              fontWeight: FontWeight.w900,
-              fontFamily: 'Inter',
-              letterSpacing: -5,
-            ),
+          child: Image.asset(
+            'assets/images/logo_c.png',
+            width: 100, // Balanced, iconic size
+            height: 100,
+            fit: BoxFit.contain,
           ),
         ),
       ),
