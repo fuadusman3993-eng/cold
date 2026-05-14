@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 
 class InitializationScreen extends StatefulWidget {
   const InitializationScreen({super.key});
@@ -32,15 +32,15 @@ class _InitializationScreenState extends State<InitializationScreen> {
     } catch (_) {}
 
     if (mounted) {
-      _navigateToMain();
+      _navigateToOnboarding();
     }
   }
 
-  void _navigateToMain() {
+  void _navigateToOnboarding() {
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) => const OnboardingScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           // X-style smooth reveal transition
           var curve = Curves.easeOutQuart;
