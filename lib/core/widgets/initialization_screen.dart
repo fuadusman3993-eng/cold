@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
+import '../../features/auth/presentation/screens/login_screen.dart';
 
 class InitializationScreen extends StatefulWidget {
   const InitializationScreen({super.key});
@@ -34,15 +34,15 @@ class _InitializationScreenState extends State<InitializationScreen> {
     }
 
     if (mounted) {
-      _navigateToOnboarding();
+      _navigateToWelcome();
     }
   }
 
-  void _navigateToOnboarding() {
+  void _navigateToWelcome() {
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const OnboardingScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
