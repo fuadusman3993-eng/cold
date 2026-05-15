@@ -21,13 +21,13 @@ jobs:
         run: |
           flutter config --enable-web
           flutter pub get
-          flutter build web --release --base-href "/"
+          flutter build web --release --base-href "/" --web-renderer html
 
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v2.0
         with:
           publish-dir: './build/web'
-          production-branch: master
+          production-branch: main
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deploy from GitHub Actions"
           enable-pull-request-comment: false
