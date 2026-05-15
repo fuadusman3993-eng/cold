@@ -8,11 +8,17 @@ import 'package:cold/core/localization/locale_provider.dart';
 import 'package:cold/features/onboarding/presentation/screens/onboarding_screen.dart';
 
 void main() async {
+  // Ensure the app starts instantly
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: 'https://hyjlsownvikgqhgzhtfq.supabase.co',
-    anonKey: 'sb_publishable_wndm3lJNp8fzm48hfqJYhg_7coXThda',
+  // Initialize Supabase in the background to prevent launch freezing
+  unawaited(
+    Supabase.initialize(
+      url: 'https://hyjlsownvikgqhgzhtfq.supabase.co',
+      anonKey: 'sb_publishable_wndm3lJNp8fzm48hfqJYhg_7coXThda',
+    ).catchError((e) {
+      debugPrint('Supabase Initialization Error: $e');
+    }),
   );
 
   runApp(
@@ -22,6 +28,9 @@ void main() async {
     ),
   );
 }
+
+// Simple helper for unawaited futures
+void unawaited(Future<void> future) {}
 
 class ColdApp extends StatelessWidget {
   const ColdApp({super.key});
