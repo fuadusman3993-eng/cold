@@ -20,7 +20,8 @@ jobs:
       - name: Build Web
         run: |
           flutter config --enable-web
-          flutter build web --release --base-href "/"
+          flutter pub get
+          flutter build web --release --base-href "/" --web-renderer html
 
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v2.0
