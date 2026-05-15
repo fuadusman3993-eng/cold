@@ -62,6 +62,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
             children: [
               // 1. Blurred Content Section
               Expanded(
+                flex: 4, // Give more weight to pull content up
                 child: TweenAnimationBuilder<double>(
                   tween: Tween<double>(begin: 12.0, end: _hasAgreedToTerms ? 0.0 : 12.0),
                   duration: const Duration(milliseconds: 800),
@@ -74,13 +75,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Spacer(),
+                            const Spacer(flex: 2),
                             Image.asset(
                               'assets/images/world_map.png',
-                              height: 300,
+                              height: 280, // Slightly reduced height to save space
                               fit: BoxFit.contain,
                               errorBuilder: (context, error, stackTrace) => Container(
-                                height: 200,
+                                height: 180,
                                 decoration: BoxDecoration(
                                   gradient: RadialGradient(
                                     colors: [Colors.white.withOpacity(0.05), Colors.transparent],
@@ -88,19 +89,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 50),
+                            const SizedBox(height: 40), // Reduced spacing to pull features up
                             _buildFeatureItem(
                               Icons.psychology_outlined,
                               l10n.translate('islamic_ai_title'),
                               l10n.translate('islamic_ai_subtitle'),
                             ),
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 48), // Increased spacing between features to prevent overlap
                             _buildFeatureItem(
                               Icons.security_outlined,
                               l10n.translate('advanced_security_title'),
                               l10n.translate('advanced_security_subtitle'),
                             ),
-                            const Spacer(),
+                            const Spacer(flex: 1),
                           ],
                         ),
                       ),
@@ -110,116 +111,120 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
               ),
               
               // 2. Interactive Section (Unblurred)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32.0),
-                child: Column(
-                  children: [
-                    // Pulsing Checkbox Row
-                    Row(
-                      children: [
-                        AnimatedBuilder(
-                          animation: _pulseAnimation,
-                          builder: (context, child) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(4),
-                                boxShadow: _hasAgreedToTerms ? [] : [
-                                  BoxShadow(
-                                    color: _electricBlue.withOpacity(0.4),
-                                    blurRadius: _pulseAnimation.value,
-                                    spreadRadius: _pulseAnimation.value / 2,
-                                  )
-                                ],
+              Expanded(
+                flex: 2, // Control bottom section weight
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      // Pulsing Checkbox Row
+                      Row(
+                        children: [
+                          AnimatedBuilder(
+                            animation: _pulseAnimation,
+                            builder: (context, child) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4),
+                                  boxShadow: _hasAgreedToTerms ? [] : [
+                                    BoxShadow(
+                                      color: _electricBlue.withOpacity(0.4),
+                                      blurRadius: _pulseAnimation.value,
+                                      spreadRadius: _pulseAnimation.value / 2,
+                                    )
+                                  ],
+                                ),
+                                child: child,
+                              );
+                            },
+                            child: SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: Checkbox(
+                                value: _hasAgreedToTerms,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _hasAgreedToTerms = value ?? false;
+                                  });
+                                },
+                                activeColor: _electricBlue,
+                                checkColor: Colors.white,
+                                side: const BorderSide(color: Colors.white38, width: 1.0),
                               ),
-                              child: child,
-                            );
-                          },
-                          child: SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: Checkbox(
-                              value: _hasAgreedToTerms,
-                              onChanged: (value) {
-                                setState(() {
-                                  _hasAgreedToTerms = value ?? false;
-                                });
-                              },
-                              activeColor: _electricBlue,
-                              checkColor: Colors.white,
-                              side: const BorderSide(color: Colors.white38, width: 1.0),
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              l10n.translate('terms_agreement'),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: _hasAgreedToTerms ? Colors.white : Colors.white60,
+                                fontWeight: FontWeight.w400,
+                                fontSize: 10,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      // Action Button
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 500),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: _hasAgreedToTerms
+                              ? [
+                                  BoxShadow(
+                                    color: _electricBlue.withOpacity(0.3),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 4),
+                                  )
+                                ]
+                              : [],
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
+                        child: ElevatedButton(
+                          onPressed: _hasAgreedToTerms
+                              ? () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    PageRouteBuilder(
+                                      pageBuilder: (context, animation, secondaryAnimation) =>
+                                          const LoginScreen(),
+                                      transitionsBuilder:
+                                          (context, animation, secondaryAnimation, child) {
+                                        return FadeTransition(opacity: animation, child: child);
+                                      },
+                                      transitionDuration: const Duration(milliseconds: 800),
+                                    ),
+                                  );
+                                }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _hasAgreedToTerms ? _electricBlue : _charcoal,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: _charcoal,
+                            disabledForegroundColor: Colors.white24,
+                            minimumSize: const Size(double.infinity, 60),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
                           child: Text(
-                            l10n.translate('terms_agreement'),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: _hasAgreedToTerms ? Colors.white : Colors.white60,
-                              fontWeight: FontWeight.w400,
-                              fontSize: 10, // Further reduced from 11
-                              letterSpacing: 0.2,
+                            l10n.translate('continue'),
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: _hasAgreedToTerms ? Colors.white : Colors.white24,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                              letterSpacing: 1.0,
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    // Action Button
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 500),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: _hasAgreedToTerms
-                            ? [
-                                BoxShadow(
-                                  color: _electricBlue.withOpacity(0.3),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 4),
-                                )
-                              ]
-                            : [],
                       ),
-                      child: ElevatedButton(
-                        onPressed: _hasAgreedToTerms
-                            ? () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (context, animation, secondaryAnimation) =>
-                                        const LoginScreen(),
-                                    transitionsBuilder:
-                                        (context, animation, secondaryAnimation, child) {
-                                      return FadeTransition(opacity: animation, child: child);
-                                    },
-                                    transitionDuration: const Duration(milliseconds: 800),
-                                  ),
-                                );
-                              }
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _hasAgreedToTerms ? _electricBlue : _charcoal,
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: _charcoal,
-                          disabledForegroundColor: Colors.white24,
-                          minimumSize: const Size(double.infinity, 60),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: Text(
-                          l10n.translate('continue'),
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: _hasAgreedToTerms ? Colors.white : Colors.white24,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 16, // Further reduced from 18
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -240,7 +245,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
             color: Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: Colors.white, size: 20), // Reduced icon size
+          child: Icon(icon, color: Colors.white, size: 20),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -250,7 +255,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
               Text(
                 title,
                 style: theme.textTheme.displaySmall?.copyWith(
-                  fontSize: 16, // Reduced from 18
+                  fontSize: 16,
                   letterSpacing: -0.1,
                 ),
               ),
@@ -259,7 +264,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                 subtitle,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: Colors.white60,
-                  fontSize: 12, // Reduced from 13
+                  fontSize: 12,
                   height: 1.3,
                 ),
               ),
