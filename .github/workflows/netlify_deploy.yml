@@ -1,5 +1,4 @@
-name: Build and Deploy to Netlify
-
+name: Netlify Deploy
 on:
   push:
     branches:
@@ -7,21 +6,24 @@ on:
 
 jobs:
   build:
+    name: Build and Deploy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repo
+        uses: actions/checkout@v3
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
           flutter-version: '3.22.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get Dependencies
+        run: flutter pub get
 
       - name: Build Web
-        run: |
-          flutter config --enable-web
-          flutter pub get
-          flutter build web --release --base-href "/" --web-renderer html
+        run: flutter build web --release --base-href "/" --web-renderer canvaskit
 
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v2.0
@@ -32,6 +34,7 @@ jobs:
           deploy-message: "Deploy from GitHub Actions"
           enable-pull-request-comment: false
           enable-commit-comment: true
+          overwritable-pull-request-comment: false
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

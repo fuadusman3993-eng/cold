@@ -24,9 +24,9 @@ flutter config --enable-web
 echo "Fetching dependencies..."
 flutter pub get
 
-# Build for web with HTML renderer for better compatibility if needed
-# Using --base-href "/" as requested
-echo "Building Flutter Web..."
-flutter build web --release --base-href "/" --web-renderer html
+# Build for web with specified renderer
+# Using --web-renderer canvaskit as requested for premium rendering
+echo "Building Flutter Web with CanvasKit..."
+flutter build web --release --base-href "/" --web-renderer canvaskit
 
 echo "Build successful."
