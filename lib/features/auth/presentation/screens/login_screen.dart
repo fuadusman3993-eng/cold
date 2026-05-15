@@ -51,14 +51,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    // final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: const [
-          // LanguageSelector(),
+          LanguageSelector(),
         ],
       ),
       body: SafeArea(
@@ -73,30 +73,28 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 children: [
                   const SizedBox(height: 40),
                   Text(
-                    'Welcome to the Digital Frontier',
+                    l10n.translate('welcome_title'),
                     style: Theme.of(context).textTheme.displayLarge,
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Authenticate to access your secure ecosystem.',
+                    l10n.translate('welcome_subtitle'),
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 60),
                   
-                  // Email Field
                   TextFormField(
-                    decoration: const InputDecoration(
-                      hintText: 'Email / Username',
-                      prefixIcon: Icon(Icons.person_outline),
+                    decoration: InputDecoration(
+                      hintText: l10n.translate('email_hint'),
+                      prefixIcon: const Icon(Icons.person_outline),
                     ),
                   ),
                   const SizedBox(height: 20),
                   
-                  // Password Field
                   TextFormField(
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
-                      hintText: 'Password',
+                      hintText: l10n.translate('password_hint'),
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -118,9 +116,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {},
-                      child: const Text(
-                        'Recover Access',
-                        style: TextStyle(color: Colors.white70),
+                      child: Text(
+                        l10n.translate('recover_access'),
+                        style: const TextStyle(color: Colors.white70),
                       ),
                     ),
                   ),
@@ -135,24 +133,22 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                       );
                     },
-                    child: const Text('Authorize'),
+                    child: Text(l10n.translate('authorize')),
                   ),
                   
                   const SizedBox(height: 60),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        'New to the ecosystem? ',
-                        style: TextStyle(color: Colors.white60),
+                      Text(
+                        l10n.translate('new_to_ecosystem'),
+                        style: const TextStyle(color: Colors.white60),
                       ),
                       TextButton(
-                        onPressed: () {
-                          // Navigate to Register
-                        },
-                        child: const Text(
-                          'Create Identity',
-                          style: TextStyle(
+                        onPressed: () {},
+                        child: Text(
+                          l10n.translate('create_identity'),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
