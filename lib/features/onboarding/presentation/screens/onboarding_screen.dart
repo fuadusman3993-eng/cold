@@ -11,6 +11,11 @@ class OnboardingScreen extends StatefulWidget {
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
+class _OtherOnboardingScreenState extends State<OnboardingScreen> {
+  // This is a placeholder to keep the code structure, 
+  // I will overwrite the whole file with the correct class name.
+}
+
 class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _hasAgreedToTerms = false;
 
@@ -89,8 +94,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Row(
                 children: [
                   SizedBox(
-                    height: 24,
-                    width: 24,
+                    height: 20,
+                    width: 20,
                     child: Checkbox(
                       value: _hasAgreedToTerms,
                       onChanged: (value) {
@@ -100,16 +105,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       },
                       activeColor: Colors.white,
                       checkColor: Colors.black,
-                      side: const BorderSide(color: Colors.white38, width: 1.5),
+                      side: const BorderSide(color: Colors.white38, width: 1.0),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       l10n.translate('terms_agreement'),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w500,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white60,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 11, // Reduced font size for less visual weight
+                        letterSpacing: 0.2,
                       ),
                     ),
                   ),
@@ -183,14 +190,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: Colors.white, size: 28),
+          child: Icon(icon, color: Colors.white, size: 24), // Reduced icon size
         ),
-        const SizedBox(width: 20),
+        const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,8 +205,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Text(
                 title,
                 style: theme.textTheme.displaySmall?.copyWith(
-                  fontSize: 20,
-                  letterSpacing: -0.5,
+                  fontSize: 18, // Reduced from 20 for high-end compact look
+                  letterSpacing: -0.2,
                 ),
               ),
               const SizedBox(height: 4),
@@ -207,6 +214,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 subtitle,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: Colors.white60,
+                  fontSize: 13, // Reduced from 14 for visual hierarchy
                   height: 1.4,
                 ),
               ),
