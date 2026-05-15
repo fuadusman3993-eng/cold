@@ -53,16 +53,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: const [LanguageSelector()],
-        toolbarHeight: 40, // Reduced toolbar height to save space
+        toolbarHeight: 40,
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28.0), // Slightly narrower padding
+          padding: const EdgeInsets.symmetric(horizontal: 28.0),
           child: Column(
             children: [
-              // 1. Content Section (Blurred/Dimmed)
+              // 1. Content Section
               Expanded(
-                flex: 5,
+                flex: 6,
                 child: TweenAnimationBuilder<double>(
                   tween: Tween<double>(begin: 12.0, end: _hasAgreedToTerms ? 0.0 : 12.0),
                   duration: const Duration(milliseconds: 800),
@@ -74,27 +74,49 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                         opacity: _hasAgreedToTerms ? 1.0 : 0.3,
                         child: Column(
                           children: [
-                            const Spacer(flex: 1), // Reduced top space to shift map up
-                            Image.asset(
-                              'assets/images/world_map.png',
-                              height: 200, // Reduced height to save significant space
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) => Container(
-                                height: 140,
-                                decoration: BoxDecoration(
-                                  gradient: RadialGradient(
-                                    colors: [Colors.white.withOpacity(0.05), Colors.transparent],
+                            const Spacer(flex: 1),
+                            // Map Visual with Glow
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Central Electric Blue Glow
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 800),
+                                  width: _hasAgreedToTerms ? 120 : 80,
+                                  height: _hasAgreedToTerms ? 120 : 80,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: _electricBlue.withOpacity(0.2),
+                                        blurRadius: 40,
+                                        spreadRadius: 20,
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
+                                Image.asset(
+                                  'assets/images/world_map.png',
+                                  height: 250, // Slightly increased scale
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) => Container(
+                                    height: 180,
+                                    decoration: BoxDecoration(
+                                      gradient: RadialGradient(
+                                        colors: [Colors.white.withOpacity(0.05), Colors.transparent],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 30), // Reduced gap to pull features up
+                            const SizedBox(height: 32),
                             _buildFeatureItem(
                               Icons.psychology_outlined,
                               l10n.translate('islamic_ai_title'),
                               l10n.translate('islamic_ai_subtitle'),
                             ),
-                            const SizedBox(height: 24), // Tighter gap between features
+                            const SizedBox(height: 24),
                             _buildFeatureItem(
                               Icons.security_outlined,
                               l10n.translate('advanced_security_title'),
@@ -109,12 +131,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                 ),
               ),
               
-              // 2. Interactive Section (Pushed to bottom)
+              // 2. Interactive Section
               Padding(
                 padding: const EdgeInsets.only(bottom: 24.0),
                 child: Column(
                   children: [
-                    // Agreement Checkbox
                     Row(
                       children: [
                         AnimatedBuilder(
@@ -156,7 +177,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                             l10n.translate('terms_agreement'),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: _hasAgreedToTerms ? Colors.white : Colors.white60,
-                              fontSize: 9, // Minimal size to save vertical weight
+                              fontSize: 9,
                               letterSpacing: 0.1,
                             ),
                           ),
@@ -164,7 +185,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                       ],
                     ),
                     const SizedBox(height: 24),
-                    // Action Button
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 500),
                       decoration: BoxDecoration(
@@ -182,6 +202,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                       child: ElevatedButton(
                         onPressed: _hasAgreedToTerms
                             ? () {
+                                // X-Style Smooth Horizontal Page Transition
                                 Navigator.pushReplacement(
                                   context,
                                   PageRouteBuilder(
@@ -189,9 +210,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                                         const LoginScreen(),
                                     transitionsBuilder:
                                         (context, animation, secondaryAnimation, child) {
-                                      return FadeTransition(opacity: animation, child: child);
+                                      const begin = Offset(1.0, 0.0); // Start from right
+                                      const end = Offset.zero;
+                                      const curve = Curves.easeOutCubic;
+                                      
+                                      var tween = Tween(begin: begin, end: end)
+                                          .chain(CurveTween(curve: curve));
+                                      
+                                      return SlideTransition(
+                                        position: animation.drive(tween),
+                                        child: child,
+                                      );
                                     },
-                                    transitionDuration: const Duration(milliseconds: 800),
+                                    transitionDuration: const Duration(milliseconds: 350),
                                   ),
                                 );
                               }
@@ -201,7 +232,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                           foregroundColor: Colors.white,
                           disabledBackgroundColor: _charcoal,
                           disabledForegroundColor: Colors.white24,
-                          minimumSize: const Size(double.infinity, 56), // Slightly shorter
+                          minimumSize: const Size(double.infinity, 56),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -212,7 +243,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: _hasAgreedToTerms ? Colors.white : Colors.white24,
                             fontWeight: FontWeight.w900,
-                            fontSize: 15, // Compacted
+                            fontSize: 15,
                             letterSpacing: 0.8,
                           ),
                         ),
@@ -249,7 +280,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
               Text(
                 title,
                 style: theme.textTheme.displaySmall?.copyWith(
-                  fontSize: 14, // Compacted for premium minimalist feel
+                  fontSize: 14,
                   letterSpacing: -0.1,
                 ),
               ),
@@ -258,7 +289,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                 subtitle,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: Colors.white60,
-                  fontSize: 10, // Compacted to prevent crowding
+                  fontSize: 10,
                   height: 1.2,
                 ),
               ),
