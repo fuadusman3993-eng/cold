@@ -25,19 +25,11 @@ jobs:
         run: flutter pub get
 
       - name: Build Web
-        # Enabled --obfuscate and --split-debug-info for source-code protection and symbol minification
-        run: |
-          mkdir -p debug-info
-          flutter build web --release \
-            --base-href "/cold/" \
-            --web-renderer canvaskit \
-            --obfuscate \
-            --split-debug-info=./debug-info
+        # Standard production build for web (obfuscate not supported on web)
+        run: flutter build web --release --base-href "/cold/" --web-renderer canvaskit
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
-          # Ensure only compiled assets are deployed, preventing raw source exposure
-          exclude_assets: false 
