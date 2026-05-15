@@ -1,6 +1,5 @@
 [build]
-  # Internal build disabled to save credits; handled by GitHub Actions
-  command = ""
+  command = "bash netlify_build.sh"
   publish = "build/web"
 
 [build.environment]
@@ -10,3 +9,9 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Access-Control-Allow-Origin = "*"
