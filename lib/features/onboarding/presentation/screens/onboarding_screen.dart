@@ -57,7 +57,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
           // 1. ISOLATED BLUR LAYER (Map + Features)
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 12.0, end: _hasAgreedToTerms ? 0.0 : 12.0),
-            // "Instantly" clear the blur when agreed
             duration: _hasAgreedToTerms ? Duration.zero : const Duration(milliseconds: 800),
             builder: (context, blurValue, child) {
               return ImageFiltered(
@@ -67,7 +66,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                   opacity: _hasAgreedToTerms ? 1.0 : 0.3,
                   child: Column(
                     children: [
-                      // Edge-to-Edge Map
                       Image.asset(
                         'assets/images/world_map.png',
                         width: size.width,
@@ -86,7 +84,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                         ),
                       ),
                       SizedBox(height: size.height * 0.04),
-                      // Feature Blocks
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: isDesktop ? size.width * 0.2 : 32.0),
                         child: Column(
@@ -115,14 +112,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
           ),
 
           // 2. UNBLURRED OVERLAY LAYER
-          // Language Button: Always visible at the top-right
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             right: 16,
             child: const LanguageSelector(),
           ),
 
-          // Checkbox + Button: Anchored at the bottom
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -200,6 +195,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                     child: ElevatedButton(
                       onPressed: _hasAgreedToTerms
                           ? () {
+                              // Automated Upward Scroll Transition (TikTok Style)
                               Navigator.pushReplacement(
                                 context,
                                 PageRouteBuilder(
@@ -207,17 +203,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                                       const LoginScreen(),
                                   transitionsBuilder:
                                       (context, animation, secondaryAnimation, child) {
-                                    const begin = Offset(1.0, 0.0);
+                                    const begin = Offset(0.0, 1.0); // Start from bottom
                                     const end = Offset.zero;
-                                    const curve = Curves.easeOutCubic;
+                                    const curve = Curves.fastOutSlowIn;
+                                    
                                     var tween = Tween(begin: begin, end: end)
                                         .chain(CurveTween(curve: curve));
+                                    
+                                    // Current page slides up while new page follows
                                     return SlideTransition(
                                       position: animation.drive(tween),
                                       child: child,
                                     );
                                   },
-                                  transitionDuration: const Duration(milliseconds: 350),
+                                  transitionDuration: const Duration(milliseconds: 500),
                                 ),
                               );
                             }
