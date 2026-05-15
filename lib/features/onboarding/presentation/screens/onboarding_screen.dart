@@ -56,204 +56,207 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
         toolbarHeight: 40,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28.0),
-          child: Column(
-            children: [
-              // 1. Content Section
-              Expanded(
-                flex: 6,
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween<double>(begin: 12.0, end: _hasAgreedToTerms ? 0.0 : 12.0),
-                  duration: const Duration(milliseconds: 800),
-                  builder: (context, blurValue, child) {
-                    return ImageFiltered(
-                      imageFilter: ImageFilter.blur(sigmaX: blurValue, sigmaY: blurValue),
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 800),
-                        opacity: _hasAgreedToTerms ? 1.0 : 0.3,
-                        child: Column(
-                          children: [
-                            const Spacer(flex: 1),
-                            // Map Visual with Glow
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Central Electric Blue Glow
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 800),
-                                  width: _hasAgreedToTerms ? 120 : 80,
-                                  height: _hasAgreedToTerms ? 120 : 80,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: _electricBlue.withOpacity(0.2),
-                                        blurRadius: 40,
-                                        spreadRadius: 20,
-                                      ),
-                                    ],
-                                  ),
+        child: Column(
+          children: [
+            // 1. Content Section (Expanded Map)
+            Expanded(
+              flex: 6,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 12.0, end: _hasAgreedToTerms ? 0.0 : 12.0),
+                duration: const Duration(milliseconds: 800),
+                builder: (context, blurValue, child) {
+                  return ImageFiltered(
+                    imageFilter: ImageFilter.blur(sigmaX: blurValue, sigmaY: blurValue),
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 800),
+                      opacity: _hasAgreedToTerms ? 1.0 : 0.3,
+                      child: Column(
+                        children: [
+                          const Spacer(flex: 1),
+                          // Edge-to-Edge Map Visual
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 800),
+                                width: _hasAgreedToTerms ? 160 : 100,
+                                height: _hasAgreedToTerms ? 160 : 100,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: _electricBlue.withOpacity(0.15),
+                                      blurRadius: 60,
+                                      spreadRadius: 30,
+                                    ),
+                                  ],
                                 ),
-                                Image.asset(
-                                  'assets/images/world_map.png',
-                                  height: 250, // Slightly increased scale
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) => Container(
-                                    height: 180,
-                                    decoration: BoxDecoration(
-                                      gradient: RadialGradient(
-                                        colors: [Colors.white.withOpacity(0.05), Colors.transparent],
-                                      ),
+                              ),
+                              Image.asset(
+                                'assets/images/world_map.png',
+                                width: double.infinity, // Full Width
+                                height: 260,
+                                fit: BoxFit.contain, // Maintain aspect but fill width
+                                errorBuilder: (context, error, stackTrace) => Container(
+                                  height: 180,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    gradient: RadialGradient(
+                                      colors: [Colors.white.withOpacity(0.05), Colors.transparent],
                                     ),
                                   ),
                                 ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+                          // Padded Feature Content
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                            child: Column(
+                              children: [
+                                _buildFeatureItem(
+                                  Icons.psychology_outlined,
+                                  l10n.translate('islamic_ai_title'),
+                                  l10n.translate('islamic_ai_subtitle'),
+                                ),
+                                const SizedBox(height: 24),
+                                _buildFeatureItem(
+                                  Icons.security_outlined,
+                                  l10n.translate('advanced_security_title'),
+                                  l10n.translate('advanced_security_subtitle'),
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 32),
-                            _buildFeatureItem(
-                              Icons.psychology_outlined,
-                              l10n.translate('islamic_ai_title'),
-                              l10n.translate('islamic_ai_subtitle'),
-                            ),
-                            const SizedBox(height: 24),
-                            _buildFeatureItem(
-                              Icons.security_outlined,
-                              l10n.translate('advanced_security_title'),
-                              l10n.translate('advanced_security_subtitle'),
-                            ),
-                            const Spacer(flex: 1),
-                          ],
-                        ),
+                          ),
+                          const Spacer(flex: 1),
+                        ],
                       ),
-                    );
-                  },
-                ),
-              ),
-              
-              // 2. Interactive Section
-              Padding(
-                padding: const EdgeInsets.only(bottom: 24.0),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        AnimatedBuilder(
-                          animation: _pulseAnimation,
-                          builder: (context, child) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(4),
-                                boxShadow: _hasAgreedToTerms ? [] : [
-                                  BoxShadow(
-                                    color: _electricBlue.withOpacity(0.4),
-                                    blurRadius: _pulseAnimation.value,
-                                    spreadRadius: _pulseAnimation.value / 2,
-                                  )
-                                ],
-                              ),
-                              child: child,
-                            );
-                          },
-                          child: SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: Checkbox(
-                              value: _hasAgreedToTerms,
-                              onChanged: (value) {
-                                setState(() {
-                                  _hasAgreedToTerms = value ?? false;
-                                });
-                              },
-                              activeColor: _electricBlue,
-                              checkColor: Colors.white,
-                              side: const BorderSide(color: Colors.white38, width: 1.0),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            l10n.translate('terms_agreement'),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: _hasAgreedToTerms ? Colors.white : Colors.white60,
-                              fontSize: 9,
-                              letterSpacing: 0.1,
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
-                    const SizedBox(height: 24),
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 500),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: _hasAgreedToTerms
-                            ? [
+                  );
+                },
+              ),
+            ),
+            
+            // 2. Interactive Section (Bottom Padded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32.0, 0, 32.0, 24.0),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      AnimatedBuilder(
+                        animation: _pulseAnimation,
+                        builder: (context, child) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                              boxShadow: _hasAgreedToTerms ? [] : [
                                 BoxShadow(
-                                  color: _electricBlue.withOpacity(0.3),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 4),
+                                  color: _electricBlue.withOpacity(0.4),
+                                  blurRadius: _pulseAnimation.value,
+                                  spreadRadius: _pulseAnimation.value / 2,
                                 )
-                              ]
-                            : [],
-                      ),
-                      child: ElevatedButton(
-                        onPressed: _hasAgreedToTerms
-                            ? () {
-                                // X-Style Smooth Horizontal Page Transition
-                                Navigator.pushReplacement(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (context, animation, secondaryAnimation) =>
-                                        const LoginScreen(),
-                                    transitionsBuilder:
-                                        (context, animation, secondaryAnimation, child) {
-                                      const begin = Offset(1.0, 0.0); // Start from right
-                                      const end = Offset.zero;
-                                      const curve = Curves.easeOutCubic;
-                                      
-                                      var tween = Tween(begin: begin, end: end)
-                                          .chain(CurveTween(curve: curve));
-                                      
-                                      return SlideTransition(
-                                        position: animation.drive(tween),
-                                        child: child,
-                                      );
-                                    },
-                                    transitionDuration: const Duration(milliseconds: 350),
-                                  ),
-                                );
-                              }
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _hasAgreedToTerms ? _electricBlue : _charcoal,
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: _charcoal,
-                          disabledForegroundColor: Colors.white24,
-                          minimumSize: const Size(double.infinity, 56),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                              ],
+                            ),
+                            child: child,
+                          );
+                        },
+                        child: SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: Checkbox(
+                            value: _hasAgreedToTerms,
+                            onChanged: (value) {
+                              setState(() {
+                                _hasAgreedToTerms = value ?? false;
+                              });
+                            },
+                            activeColor: _electricBlue,
+                            checkColor: Colors.white,
+                            side: const BorderSide(color: Colors.white38, width: 1.0),
                           ),
                         ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
                         child: Text(
-                          l10n.translate('continue'),
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: _hasAgreedToTerms ? Colors.white : Colors.white24,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 15,
-                            letterSpacing: 0.8,
+                          l10n.translate('terms_agreement'),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: _hasAgreedToTerms ? Colors.white : Colors.white60,
+                            fontSize: 9,
+                            letterSpacing: 0.1,
                           ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 500),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: _hasAgreedToTerms
+                          ? [
+                              BoxShadow(
+                                color: _electricBlue.withOpacity(0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 4),
+                              )
+                            ]
+                          : [],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: _hasAgreedToTerms
+                          ? () {
+                              Navigator.pushReplacement(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation, secondaryAnimation) =>
+                                      const LoginScreen(),
+                                  transitionsBuilder:
+                                      (context, animation, secondaryAnimation, child) {
+                                    const begin = Offset(1.0, 0.0);
+                                    const end = Offset.zero;
+                                    const curve = Curves.easeOutCubic;
+                                    var tween = Tween(begin: begin, end: end)
+                                        .chain(CurveTween(curve: curve));
+                                    return SlideTransition(
+                                      position: animation.drive(tween),
+                                      child: child,
+                                    );
+                                  },
+                                  transitionDuration: const Duration(milliseconds: 350),
+                                ),
+                              );
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _hasAgreedToTerms ? _electricBlue : _charcoal,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: _charcoal,
+                        disabledForegroundColor: Colors.white24,
+                        minimumSize: const Size(double.infinity, 56),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: Text(
+                        l10n.translate('continue'),
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: _hasAgreedToTerms ? Colors.white : Colors.white24,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                          letterSpacing: 0.8,
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
