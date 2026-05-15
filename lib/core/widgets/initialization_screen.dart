@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cold/features/onboarding/presentation/screens/onboarding_screen.dart';
 
 class InitializationScreen extends StatefulWidget {
@@ -10,27 +9,28 @@ class InitializationScreen extends StatefulWidget {
   State<InitializationScreen> createState() => _InitializationScreenState();
 }
 
-class _InitializationScreenState extends State<InitializationScreen> {
+class _InitializationScreenState extends State<InitializationScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
+    );
+
+    _fadeController.forward();
+    _startBootSequence();
   }
 
-  Future<void> _initializeApp() async {
-    // High-speed 1.2s brand hold for a premium snappy feel
-    await Future.delayed(const Duration(milliseconds: 1200));
-    
-    try {
-      // Quick background initialization check
-      await Supabase.instance.client
-          .from('profiles')
-          .select()
-          .limit(1)
-          .maybeSingle()
-          .timeout(const Duration(seconds: 1));
-    } catch (_) {}
-
+  Future<void> _startBootSequence() async {
+    // Second State: Automated transition after 2s native hold
+    await Future.delayed(const Duration(milliseconds: 2000));
     if (mounted) {
       _navigateToOnboarding();
     }
@@ -42,43 +42,35 @@ class _InitializationScreenState extends State<InitializationScreen> {
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => const OnboardingScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // X-style smooth reveal transition
-          var curve = Curves.easeOutQuart;
-          
-          var scaleAnimation = Tween<double>(begin: 1.05, end: 1.0).animate(
-            CurvedAnimation(parent: animation, curve: curve),
-          );
-          
-          var opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-            CurvedAnimation(parent: animation, curve: curve),
-          );
-
-          return FadeTransition(
-            opacity: opacityAnimation,
-            child: ScaleTransition(
-              scale: scaleAnimation,
-              child: child,
-            ),
-          );
+          // Smooth fade-in transition to Onboarding
+          return FadeTransition(opacity: animation, child: child);
         },
-        transitionDuration: const Duration(milliseconds: 500),
+        transitionDuration: const Duration(milliseconds: 800),
       ),
     );
   }
 
   @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.black,
+    return Scaffold(
+      backgroundColor: Colors.black, // Pure Black #000000
       body: Center(
-        child: Text(
-          'C',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 100,
-            fontWeight: FontWeight.w900,
-            fontFamily: 'Inter',
-            letterSpacing: -5,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: const Text(
+            'C',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 100,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -5,
+            ),
           ),
         ),
       ),

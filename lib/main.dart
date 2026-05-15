@@ -5,20 +5,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cold/core/theme/app_theme.dart';
 import 'package:cold/core/localization/app_localizations.dart';
 import 'package:cold/core/localization/locale_provider.dart';
-import 'package:cold/features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:cold/core/widgets/initialization_screen.dart';
 
 void main() async {
-  // Ensure the app starts instantly
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Supabase in the background to prevent launch freezing
+  // Initialize Supabase in the background
   unawaited(
     Supabase.initialize(
       url: 'https://hyjlsownvikgqhgzhtfq.supabase.co',
       anonKey: 'sb_publishable_wndm3lJNp8fzm48hfqJYhg_7coXThda',
-    ).catchError((e) {
-      debugPrint('Supabase Initialization Error: $e');
-    }),
+    ).catchError((e) => debugPrint('Supabase Error: $e')),
   );
 
   runApp(
@@ -29,7 +26,6 @@ void main() async {
   );
 }
 
-// Simple helper for unawaited futures
 void unawaited(Future<void> future) {}
 
 class ColdApp extends StatelessWidget {
@@ -54,7 +50,8 @@ class ColdApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const OnboardingScreen(),
+      // First State: Minimalist Splash Screen
+      home: const InitializationScreen(),
     );
   }
 }
