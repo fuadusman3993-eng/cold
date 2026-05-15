@@ -31,13 +31,44 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              const Text(
-                'C',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 120,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -8,
+              // Restored Map Visual with Premium Styling
+              Center(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Opacity(
+                      opacity: 0.4,
+                      child: Image.asset(
+                        'assets/images/world_map.png',
+                        height: 280,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          height: 200,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: RadialGradient(
+                              colors: [Colors.white.withOpacity(0.1), Colors.transparent],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      'C',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 100,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -8,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black,
+                            blurRadius: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 60),
