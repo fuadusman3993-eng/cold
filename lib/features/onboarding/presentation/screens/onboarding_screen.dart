@@ -52,28 +52,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: const [LanguageSelector()],
-        toolbarHeight: 40,
-      ),
       body: Stack(
         children: [
           // 1. ISOLATED BLUR LAYER (Map + Features)
-          // This layer is strictly wrapped to prevent engine crashes
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 12.0, end: _hasAgreedToTerms ? 0.0 : 12.0),
-            duration: const Duration(milliseconds: 800),
+            // "Instantly" clear the blur when agreed
+            duration: _hasAgreedToTerms ? Duration.zero : const Duration(milliseconds: 800),
             builder: (context, blurValue, child) {
               return ImageFiltered(
                 imageFilter: ImageFilter.blur(sigmaX: blurValue, sigmaY: blurValue),
                 child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 800),
+                  duration: _hasAgreedToTerms ? Duration.zero : const Duration(milliseconds: 800),
                   opacity: _hasAgreedToTerms ? 1.0 : 0.3,
                   child: Column(
                     children: [
-                      // Edge-to-Edge Map (Top of Viewport)
+                      // Edge-to-Edge Map
                       Image.asset(
                         'assets/images/world_map.png',
                         width: size.width,
@@ -120,8 +114,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
             },
           ),
 
-          // 2. INDEPENDENT OVERLAY LAYER (Checkbox + Button)
-          // Always sharp and responsive, preventing black screen freezes
+          // 2. UNBLURRED OVERLAY LAYER
+          // Language Button: Always visible at the top-right
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            right: 16,
+            child: const LanguageSelector(),
+          ),
+
+          // Checkbox + Button: Anchored at the bottom
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -134,7 +135,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Pulsing Checkbox
                   Row(
                     children: [
                       AnimatedBuilder(
@@ -183,7 +183,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Action Button with Slide Transition
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 500),
                     decoration: BoxDecoration(
@@ -201,7 +200,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                     child: ElevatedButton(
                       onPressed: _hasAgreedToTerms
                           ? () {
-                              // Third State: Smooth horizontal slide-left to Login
                               Navigator.pushReplacement(
                                 context,
                                 PageRouteBuilder(
