@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cold/features/auth/presentation/screens/login_screen.dart';
 import 'package:cold/core/localization/app_localizations.dart';
@@ -16,6 +17,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     
     return Scaffold(
       backgroundColor: Colors.black,
@@ -31,40 +33,59 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              // Map Visual as the Primary Focus
-              Center(
-                child: Opacity(
-                  opacity: 0.8, // Increased opacity since it's now the focus
-                  child: Image.asset(
-                    'assets/images/world_map.png',
-                    height: 320,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 240,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          colors: [Colors.white.withOpacity(0.1), Colors.transparent],
+              // Animated Background Container (Map)
+              TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0.0, end: _hasAgreedToTerms ? 5.0 : 0.0),
+                duration: const Duration(milliseconds: 500),
+                builder: (context, blurValue, child) {
+                  return ImageFiltered(
+                    imageFilter: ImageFilter.blur(sigmaX: blurValue, sigmaY: blurValue),
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 500),
+                      opacity: _hasAgreedToTerms ? 0.3 : 0.8,
+                      child: Center(
+                        child: Image.asset(
+                          'assets/images/world_map.png',
+                          height: 320,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            height: 240,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              gradient: RadialGradient(
+                                colors: [Colors.white.withOpacity(0.1), Colors.transparent],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                      child: const Icon(Icons.public, size: 80, color: Colors.white10),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 60),
-              _buildFeatureItem(
-                Icons.psychology_outlined,
-                l10n.translate('islamic_ai_title'),
-                l10n.translate('islamic_ai_subtitle'),
-              ),
-              const SizedBox(height: 32),
-              _buildFeatureItem(
-                Icons.security_outlined,
-                l10n.translate('advanced_security_title'),
-                l10n.translate('advanced_security_subtitle'),
+              // Feature Section (also dimmed when agreed)
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 500),
+                opacity: _hasAgreedToTerms ? 0.4 : 1.0,
+                child: Column(
+                  children: [
+                    _buildFeatureItem(
+                      Icons.psychology_outlined,
+                      l10n.translate('islamic_ai_title'),
+                      l10n.translate('islamic_ai_subtitle'),
+                    ),
+                    const SizedBox(height: 32),
+                    _buildFeatureItem(
+                      Icons.security_outlined,
+                      l10n.translate('advanced_security_title'),
+                      l10n.translate('advanced_security_subtitle'),
+                    ),
+                  ],
+                ),
               ),
               const Spacer(),
+              // Terms & Agreement Checkbox with Signature Typography
               Row(
                 children: [
                   SizedBox(
@@ -86,47 +107,65 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Expanded(
                     child: Text(
                       l10n.translate('terms_agreement'),
-                      style: const TextStyle(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: Colors.white70,
-                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _hasAgreedToTerms
-                    ? () {
-                        Navigator.pushReplacement(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) =>
-                                const LoginScreen(),
-                            transitionsBuilder:
-                                (context, animation, secondaryAnimation, child) {
-                              return FadeTransition(opacity: animation, child: child);
-                            },
-                            transitionDuration: const Duration(milliseconds: 800),
-                          ),
-                        );
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _hasAgreedToTerms ? Colors.white : Colors.white10,
-                  foregroundColor: Colors.black,
-                  disabledBackgroundColor: Colors.white.withOpacity(0.05),
-                  disabledForegroundColor: Colors.white24,
-                  minimumSize: const Size(double.infinity, 64),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+              // Action Button with Smooth State Transition
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 400),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: _hasAgreedToTerms
+                      ? [
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 4),
+                          )
+                        ]
+                      : [],
                 ),
-                child: Text(
-                  l10n.translate('continue'),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                child: ElevatedButton(
+                  onPressed: _hasAgreedToTerms
+                      ? () {
+                          Navigator.pushReplacement(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, secondaryAnimation) =>
+                                  const LoginScreen(),
+                              transitionsBuilder:
+                                  (context, animation, secondaryAnimation, child) {
+                                return FadeTransition(opacity: animation, child: child);
+                              },
+                              transitionDuration: const Duration(milliseconds: 800),
+                            ),
+                          );
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _hasAgreedToTerms ? Colors.white : Colors.white10,
+                    foregroundColor: Colors.black,
+                    disabledBackgroundColor: Colors.white.withOpacity(0.05),
+                    disabledForegroundColor: Colors.white24,
+                    minimumSize: const Size(double.infinity, 64),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: Text(
+                    l10n.translate('continue'),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: _hasAgreedToTerms ? Colors.black : Colors.white24,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                      letterSpacing: 1.2,
+                    ),
                   ),
                 ),
               ),
@@ -139,6 +178,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildFeatureItem(IconData icon, String title, String subtitle) {
+    final theme = Theme.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -157,19 +197,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: theme.textTheme.displaySmall?.copyWith(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
                   letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: const TextStyle(
+                style: theme.textTheme.bodyMedium?.copyWith(
                   color: Colors.white60,
-                  fontSize: 14,
                   height: 1.4,
                 ),
               ),
