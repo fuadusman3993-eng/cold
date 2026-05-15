@@ -11,11 +11,6 @@ class OnboardingScreen extends StatefulWidget {
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OtherOnboardingScreenState extends State<OnboardingScreen> {
-  // This is a placeholder to keep the code structure, 
-  // I will overwrite the whole file with the correct class name.
-}
-
 class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _hasAgreedToTerms = false;
 
@@ -115,7 +110,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.white60,
                         fontWeight: FontWeight.w400,
-                        fontSize: 11, // Reduced font size for less visual weight
+                        fontSize: 11,
                         letterSpacing: 0.2,
                       ),
                     ),
@@ -195,7 +190,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             color: Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: Colors.white, size: 24), // Reduced icon size
+          child: Icon(icon, color: Colors.white, size: 24),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -205,7 +200,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Text(
                 title,
                 style: theme.textTheme.displaySmall?.copyWith(
-                  fontSize: 18, // Reduced from 20 for high-end compact look
+                  fontSize: 18,
                   letterSpacing: -0.2,
                 ),
               ),
@@ -214,7 +209,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 subtitle,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: Colors.white60,
-                  fontSize: 13, // Reduced from 14 for visual hierarchy
+                  fontSize: 13,
                   height: 1.4,
                 ),
               ),
