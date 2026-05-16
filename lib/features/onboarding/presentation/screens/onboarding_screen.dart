@@ -19,8 +19,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
   
   final List<String> _selectedInterests = [];
   final List<String> _interests = [
-    'Technology', 'Lifestyle', 'News', 'Art', 'Finance', 
-    'Sport', 'Travel', 'Food', 'Music', 'Movies', 'Gaming', 'Science'
+    'Quran', 'Football', 'News', 'Cold Videos', 'Technology', 
+    'Lifestyle', 'Art', 'Finance', 'Travel', 'Food', 'Movies', 'Gaming', 'Science'
   ];
 
   static const Color _electricBlue = Color(0xFF2196F3);
@@ -332,7 +332,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
               children: [
                 Expanded(
                   child: TextButton(
-                    onPressed: _finishOnboarding,
+                    onPressed: () => _handleSkip(context),
                     child: const Text("Skip", style: TextStyle(color: Colors.white38)),
                   ),
                 ),
@@ -342,7 +342,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   child: _buildActionButton(
                     context, 
                     "Next (${_selectedInterests.length})", 
-                    true, 
+                    _selectedInterests.isNotEmpty, 
                     _finishOnboarding, 
                     isDesktop
                   ),
@@ -365,6 +365,82 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
         },
         transitionDuration: const Duration(milliseconds: 500),
       ),
+    );
+  }
+
+  void _handleSkip(BuildContext context) {
+    if (_selectedInterests.isEmpty) {
+      _showSkipOverlay(context);
+    } else {
+      _finishOnboarding();
+    }
+  }
+
+  void _showSkipOverlay(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF0A0A0A),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border(
+              top: BorderSide(color: Colors.white10, width: 0.5),
+            ),
+          ),
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white12,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 32),
+              const Icon(Icons.auto_awesome_outlined, color: _electricBlue, size: 48),
+              const SizedBox(height: 24),
+              Text(
+                "Personalize your feed",
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Selecting topics helps us curate a personalized experience for you. Are you sure you want to skip?",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white60, fontSize: 15, height: 1.5),
+              ),
+              const SizedBox(height: 32),
+              _buildActionButton(
+                context, 
+                "Let me choose", 
+                true, 
+                () => Navigator.pop(context), 
+                false
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _finishOnboarding();
+                },
+                child: const Text(
+                  "Proceed anyway", 
+                  style: TextStyle(color: Colors.white38, fontWeight: FontWeight.bold)
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
