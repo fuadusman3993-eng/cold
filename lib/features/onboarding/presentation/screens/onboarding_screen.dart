@@ -198,7 +198,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
   // --- PAGE 2: Salat View ---
   Widget _buildSalatView(BuildContext context) {
     return AnimatedInfoSlide(
-      icon: Icons.wb_sunny_outlined,
       title: "Salat to guide your day",
       accentColor: _electricBlue,
       onAutoScroll: _nextPage,
@@ -470,7 +469,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
 }
 
 class AnimatedInfoSlide extends StatefulWidget {
-  final IconData icon;
+  final IconData? icon;
   final String title;
   final String? subtitle;
   final Color accentColor;
@@ -478,7 +477,7 @@ class AnimatedInfoSlide extends StatefulWidget {
 
   const AnimatedInfoSlide({
     super.key,
-    required this.icon,
+    this.icon,
     required this.title,
     this.subtitle,
     required this.accentColor,
@@ -513,7 +512,7 @@ class _AnimatedInfoSlideState extends State<AnimatedInfoSlide> with SingleTicker
 
     _controller.forward();
 
-    _timer = Timer(const Duration(milliseconds: 3500), () {
+    _timer = Timer(const Duration(milliseconds: 1500), () {
       if (mounted) {
         widget.onAutoScroll();
       }
@@ -539,20 +538,22 @@ class _AnimatedInfoSlideState extends State<AnimatedInfoSlide> with SingleTicker
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: widget.accentColor.withOpacity(0.2),
-                        blurRadius: 30,
-                        spreadRadius: 5,
-                      ),
-                    ],
+                if (widget.icon != null) ...[
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: widget.accentColor.withOpacity(0.2),
+                          blurRadius: 30,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: Icon(widget.icon, color: widget.accentColor, size: 72),
                   ),
-                  child: Icon(widget.icon, color: widget.accentColor, size: 72),
-                ),
-                const SizedBox(height: 40),
+                  const SizedBox(height: 40),
+                ],
                 Text(
                   widget.title,
                   textAlign: TextAlign.center,
