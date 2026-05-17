@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cold/features/post/presentation/screens/create_post_screen.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -50,7 +51,15 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   AnimatedScaleButton(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CreatePostScreen(),
+                          fullscreenDialog: true,
+                        ),
+                      );
+                    },
                     child: const Icon(Icons.add, color: Colors.white, size: 32),
                   ),
                   Text(
