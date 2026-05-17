@@ -50,8 +50,8 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
               controller: _tabController,
               physics: const ClampingScrollPhysics(),
               children: [
-                _buildImmersiveFeed('For You'),
                 _buildImmersiveFeed('Following'),
+                _buildImmersiveFeed('For You'),
               ],
             ),
           ),
@@ -97,12 +97,35 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                             },
                             child: const Icon(Icons.add, color: Colors.white, size: 32),
                           ),
-                          Text(
-                            'Cold',
-                            style: GoogleFonts.pacifico(
-                              color: Colors.white,
-                              fontSize: 28,
-                              letterSpacing: 1.5,
+                          // TikTok-Style Centered Tabs
+                          SizedBox(
+                            width: 220,
+                            child: TabBar(
+                              controller: _tabController,
+                              onTap: _handleTabTap,
+                              dividerColor: Colors.transparent, // Remove default flutter divider line
+                              indicator: UnderlineTabIndicator(
+                                borderSide: const BorderSide(color: Colors.white, width: 3.0),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              indicatorPadding: const EdgeInsets.symmetric(horizontal: 16),
+                              indicatorSize: TabBarIndicatorSize.label,
+                              labelColor: Colors.white,
+                              unselectedLabelColor: Colors.white60,
+                              labelStyle: GoogleFonts.inter(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 17,
+                                shadows: [const Shadow(color: Colors.black45, blurRadius: 4)],
+                              ),
+                              unselectedLabelStyle: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                shadows: [const Shadow(color: Colors.black45, blurRadius: 4)],
+                              ),
+                              tabs: const [
+                                Tab(text: "Following"),
+                                Tab(text: "For You"),
+                              ],
                             ),
                           ),
                           AnimatedScaleButton(
@@ -115,31 +138,6 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                     
                     // Story Section
                     _buildStoriesSection(),
-
-                    // Feed Navigation (TabBar)
-                    TabBar(
-                      controller: _tabController,
-                      onTap: _handleTabTap,
-                      indicator: UnderlineTabIndicator(
-                        borderSide: const BorderSide(color: Colors.white, width: 3.0),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      indicatorSize: TabBarIndicatorSize.label,
-                      labelColor: Colors.white,
-                      unselectedLabelColor: Colors.white70,
-                      labelStyle: GoogleFonts.inter(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
-                      unselectedLabelStyle: GoogleFonts.inter(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16,
-                      ),
-                      tabs: const [
-                        Tab(text: "For You"),
-                        Tab(text: "Following"),
-                      ],
-                    ),
                   ],
                 ),
               ),
