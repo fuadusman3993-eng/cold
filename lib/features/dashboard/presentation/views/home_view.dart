@@ -291,16 +291,15 @@ class _FeedPostItemState extends State<FeedPostItem> {
   }
 
   Future<void> _initializePlayer() async {
-    final path = widget.video.videoPath;
-    if (path.isEmpty) return; // Keep rendering gradient placeholder
+    final url = widget.video.url;
+    if (url.isEmpty) return; // Keep rendering gradient placeholder
 
-    if (kIsWeb) {
-      _controller = VideoPlayerController.networkUrl(Uri.parse(path));
-    } else if (path.startsWith('http') || path.startsWith('https')) {
-      _controller = VideoPlayerController.networkUrl(Uri.parse(path));
+    final isLocal = !kIsWeb && !(url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('assets/'));
+
+    if (isLocal) {
+      _controller = VideoPlayerController.file(File(url));
     } else {
-      // 1. File Path Conversion: Safely load local picker path into VideoPlayerController.file
-      _controller = VideoPlayerController.file(File(path));
+      _controller = VideoPlayerController.networkUrl(Uri.parse(url));
     }
 
     try {
@@ -308,9 +307,7 @@ class _FeedPostItemState extends State<FeedPostItem> {
       await _controller!.setLooping(true);
       await _controller!.play();
       if (mounted) {
-        setState(() {
-          _isInitialized = true;
-        });
+        setState(() {});
       }
     } catch (e) {
       debugPrint('Error loading feed video: $e');
@@ -343,7 +340,7 @@ class _FeedPostItemState extends State<FeedPostItem> {
         // 2. Video Player Layer with exact Initialization Guard
         if (_controller != null)
           Positioned.fill(
-            child: _isInitialized && _controller!.value.isInitialized
+            child: _controller!.value.isInitialized
                 ? FittedBox(
                     fit: BoxFit.cover,
                     child: SizedBox(

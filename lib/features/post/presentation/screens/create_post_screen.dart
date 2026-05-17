@@ -124,7 +124,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ? 'New premium dynamic post description!' 
             : _descController.text.trim(),
         username: 'you',
-        videoPath: _videoFile!.path,
+        url: _videoFile!.path,
         colors: const [Color(0xFFFF416C), Color(0xFFFF4B2B)],
       );
 

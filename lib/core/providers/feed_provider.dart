@@ -4,14 +4,14 @@ class VideoModel {
   final String id;
   final String title;
   final String username;
-  final String videoPath;
+  final String url;
   final List<Color> colors;
 
   VideoModel({
     required this.id,
     required this.title,
     required this.username,
-    required this.videoPath,
+    required this.url,
     required this.colors,
   });
 }
@@ -42,7 +42,7 @@ class FeedProvider extends ChangeNotifier {
           id: 'following_$i',
           title: 'Premium post from following list',
           username: 'creator_$i',
-          videoPath: '',
+          url: '',
           colors: colorPair,
         ),
       );
@@ -51,7 +51,7 @@ class FeedProvider extends ChangeNotifier {
           id: 'foryou_$i',
           title: 'Premium content tailored for you',
           username: 'explorer_$i',
-          videoPath: '',
+          url: '',
           colors: colorPair,
         ),
       );
