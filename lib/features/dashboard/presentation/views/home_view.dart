@@ -1,84 +1,115 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return DefaultTabController(
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
       length: 2,
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              // Custom Top Bar
-              SliverAppBar(
-                backgroundColor: Colors.black,
-                elevation: 0,
-                floating: true,
-                pinned: false,
-                leading: IconButton(
-                  icon: const Icon(Icons.add, color: Colors.white),
-                  onPressed: () {},
-                ),
-                title: Text(
-                  'COLD',
-                  style: GoogleFonts.inter(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -1.0,
-                    fontSize: 24,
+      vsync: this,
+      animationDuration: const Duration(milliseconds: 250),
+    );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _handleTabTap(int index) {
+    if (_tabController.index == index) return;
+    _tabController.animateTo(
+      index,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.fastOutSlowIn,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Fixed Top Bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AnimatedScaleButton(
+                    onTap: () {},
+                    child: const Icon(Icons.add, color: Colors.white, size: 32),
                   ),
-                ),
-                centerTitle: true,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.search, color: Colors.white),
-                    onPressed: () {},
+                  Text(
+                    'COLD',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1.0,
+                      fontSize: 24,
+                    ),
+                  ),
+                  AnimatedScaleButton(
+                    onTap: () {},
+                    child: const Icon(Icons.search, color: Colors.white, size: 32),
                   ),
                 ],
               ),
-              
-              // Story Section (Horizontal Scroll)
-              SliverToBoxAdapter(
-                child: _buildStoriesSection(),
-              ),
+            ),
+            
+            // Fixed Story Section (Horizontal Scroll)
+            _buildStoriesSection(),
 
-              // Feed Navigation (TabBar)
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _SliverAppBarDelegate(
-                  TabBar(
-                    indicatorColor: Colors.white,
-                    indicatorWeight: 2,
-                    indicatorSize: TabBarIndicatorSize.label,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white54,
-                    labelStyle: GoogleFonts.inter(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                    unselectedLabelStyle: GoogleFonts.inter(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16,
-                    ),
-                    tabs: const [
-                      Tab(text: "For You"),
-                      Tab(text: "Following"),
-                    ],
-                  ),
-                ),
+            // Fixed Feed Navigation (TabBar)
+            TabBar(
+              controller: _tabController,
+              onTap: _handleTabTap,
+              indicator: UnderlineTabIndicator(
+                borderSide: const BorderSide(color: Colors.white, width: 4.0),
+                borderRadius: BorderRadius.circular(4),
               ),
-            ];
-          },
-          body: TabBarView(
-            children: [
-              _buildFeedDummy('For You Feed'),
-              _buildFeedDummy('Following Feed'),
-            ],
-          ),
+              indicatorSize: TabBarIndicatorSize.label,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white54,
+              labelStyle: GoogleFonts.inter(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
+              unselectedLabelStyle: GoogleFonts.inter(
+                fontWeight: FontWeight.w500,
+                fontSize: 16,
+              ),
+              tabs: const [
+                Tab(text: "For You"),
+                Tab(text: "Following"),
+              ],
+            ),
+            
+            // Scrollable Feeds
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                physics: const ClampingScrollPhysics(), // Provide standard paging physics
+                children: [
+                  _buildFeedDummy('For You Feed'),
+                  _buildFeedDummy('Following Feed'),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -153,26 +184,67 @@ class HomeView extends StatelessWidget {
   }
 }
 
-class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  _SliverAppBarDelegate(this._tabBar);
+// Custom widget for premium micro-animations on icons
+class AnimatedScaleButton extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
 
-  final TabBar _tabBar;
+  const AnimatedScaleButton({
+    super.key,
+    required this.child,
+    required this.onTap,
+  });
 
   @override
-  double get minExtent => _tabBar.preferredSize.height;
-  @override
-  double get maxExtent => _tabBar.preferredSize.height;
+  State<AnimatedScaleButton> createState() => _AnimatedScaleButtonState();
+}
+
+class _AnimatedScaleButtonState extends State<AnimatedScaleButton> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: Colors.black, // Opaque background prevents overlap visual issues
-      child: _tabBar,
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.85).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
 
   @override
-  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return false;
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    _controller.forward();
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    _controller.reverse();
+    widget.onTap();
+  }
+
+  void _onTapCancel() {
+    _controller.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      behavior: HitTestBehavior.opaque,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: widget.child,
+      ),
+    );
   }
 }
