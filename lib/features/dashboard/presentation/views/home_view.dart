@@ -238,40 +238,48 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
         ];
         final colorPair = colors[index % colors.length];
 
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: colorPair,
-            ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '$title - Media $index',
-                  style: GoogleFonts.inter(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 10)
-                    ],
-                  ),
+        return Stack(
+          children: [
+            // Full-screen background media
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: colorPair,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Full-screen edge-to-edge post',
-                  style: GoogleFonts.inter(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '$title - Media $index',
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 10)
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Full-screen edge-to-edge post',
+                      style: GoogleFonts.inter(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+            
+            // Floating Interaction Panel (TikTok Style)
+            const _InteractionPanel(),
+          ],
         );
       },
     );
@@ -339,6 +347,93 @@ class _AnimatedScaleButtonState extends State<AnimatedScaleButton> with SingleTi
         scale: _scaleAnimation,
         child: widget.child,
       ),
+    );
+  }
+}
+
+class _InteractionPanel extends StatelessWidget {
+  const _InteractionPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      bottom: 100,
+      right: 16,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildProfileAvatar(),
+          const SizedBox(height: 20),
+          _buildInteractionButton(Icons.favorite, '8,497'),
+          const SizedBox(height: 20),
+          _buildInteractionButton(Icons.chat_bubble, '77'),
+          const SizedBox(height: 20),
+          _buildInteractionButton(Icons.bookmark, '336'),
+          const SizedBox(height: 20),
+          _buildInteractionButton(Icons.reply, 'Share'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileAvatar() {
+    return SizedBox(
+      width: 56,
+      height: 68,
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+              color: Colors.white10,
+            ),
+            child: const Icon(Icons.person, color: Colors.white54, size: 30),
+          ),
+          Positioned(
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xFF0088FF), // Premium blue accent
+              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 16),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInteractionButton(IconData icon, String label) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: Colors.white,
+          size: 36,
+          shadows: [
+            Shadow(color: Colors.black.withOpacity(0.8), blurRadius: 10, offset: const Offset(0, 1)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            shadows: [
+              Shadow(color: Colors.black.withOpacity(0.8), blurRadius: 6, offset: const Offset(0, 1)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
