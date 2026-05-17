@@ -12,7 +12,7 @@ const RESOURCES = {"assets/shaders/ink_sparkle.frag": "ecc85a2e95f5e9f53123dcaf8
 "assets/assets/images/onboarding_2.png": "1f25f926cfd63e12fa4db3818de2e57e",
 "assets/assets/images/world_map.png": "06f774adf88c7d0526368420e469b6d6",
 "assets/assets/images/islamic_ai.png": "2a566f1c2cee594c97338e012d2a30d7",
-"assets/fonts/MaterialIcons-Regular.otf": "1d6ac582c83229f19147e6e891be858f",
+"assets/fonts/MaterialIcons-Regular.otf": "415a8d2e3926dfdf72c67f47b30cfa4d",
 "assets/AssetManifest.bin": "719ee3ab0393bcf32f86fefd7e8a7557",
 "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
 "assets/AssetManifest.bin.json": "afd71801e10388ded0d7628845259d25",
@@ -33,9 +33,9 @@ const RESOURCES = {"assets/shaders/ink_sparkle.frag": "ecc85a2e95f5e9f53123dcaf8
 "canvaskit/skwasm.worker.js": "bfb704a6c714a75da9ef320991e88b03",
 "canvaskit/canvaskit.js": "738255d00768497e86aa4ca510cce1e1",
 "canvaskit/skwasm.wasm": "4051bfc27ba29bf420d17aa0c3a98bce",
-"flutter_bootstrap.js": "5cbcddc7628aad7fefbc25ce459e2904",
+"flutter_bootstrap.js": "e39cf7224af6f7f9a33dee375a9410a4",
 "manifest.json": "ad9ce3c664b00702ba954b1f26fbbb56",
-"main.dart.js": "ac2ad54b581cb8b6e1be66d1f853ad14"};
+"main.dart.js": "73695bf4db4f93d19ea190c9265a8964"};
 // The application shell files that are downloaded before a service worker can
 // start.
 const CORE = ["main.dart.js",
