@@ -6,6 +6,7 @@ import 'package:cold/core/theme/app_theme.dart';
 import 'package:cold/core/localization/app_localizations.dart';
 import 'package:cold/core/localization/locale_provider.dart';
 import 'package:cold/core/widgets/initialization_screen.dart';
+import 'package:cold/core/providers/feed_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,8 +20,11 @@ void main() async {
   );
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => LocaleProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => LocaleProvider()),
+        ChangeNotifierProvider(create: (context) => FeedProvider()),
+      ],
       child: const ColdApp(),
     ),
   );

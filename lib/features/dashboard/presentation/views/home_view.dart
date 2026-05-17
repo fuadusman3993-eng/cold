@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:cold/features/post/presentation/screens/create_post_screen.dart';
 import 'package:cold/core/utils/navigation_helper.dart';
+import 'package:cold/core/providers/feed_provider.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -242,18 +244,25 @@ class _ImmersiveFeedState extends State<ImmersiveFeed> with AutomaticKeepAliveCl
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final feedProvider = Provider.of<FeedProvider>(context);
+    final videos = widget.title == 'Following' 
+        ? feedProvider.followingVideos 
+        : feedProvider.forYouVideos;
+
+    if (videos.isEmpty) {
+      return const Center(
+        child: Text(
+          'No posts available.',
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    }
+
     return PageView.builder(
       scrollDirection: Axis.vertical,
-      itemCount: 10,
+      itemCount: videos.length,
       itemBuilder: (context, index) {
-        // Generating vibrant gradients to simulate beautiful media
-        final colors = [
-          [const Color(0xFF1A2980), const Color(0xFF26D0CE)], // Blue/Cyan
-          [const Color(0xFF4A00E0), const Color(0xFF8E2DE2)], // Deep Purple
-          [const Color(0xFF0F2027), const Color(0xFF203A43)], // Dark Slate
-          [const Color(0xFF373B44), const Color(0xFF4286f4)], // Grey/Blue
-        ];
-        final colorPair = colors[index % colors.length];
+        final video = videos[index];
 
         return Stack(
           children: [
@@ -264,7 +273,7 @@ class _ImmersiveFeedState extends State<ImmersiveFeed> with AutomaticKeepAliveCl
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: colorPair,
+                    colors: video.colors,
                   ),
                 ),
               ),
@@ -279,7 +288,7 @@ class _ImmersiveFeedState extends State<ImmersiveFeed> with AutomaticKeepAliveCl
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '@username_$index',
+                    '@${video.username}',
                     style: GoogleFonts.inter(
                       color: Colors.white,
                       fontSize: 16,
@@ -291,7 +300,7 @@ class _ImmersiveFeedState extends State<ImmersiveFeed> with AutomaticKeepAliveCl
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${widget.title} - This is a sample video post description designed to match the premium TikTok aesthetic.',
+                    video.title,
                     style: GoogleFonts.inter(
                       color: Colors.white,
                       fontSize: 14,

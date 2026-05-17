@@ -5,6 +5,8 @@ import 'package:video_player/video_player.dart';
 import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
+import 'package:cold/core/providers/feed_provider.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -95,6 +97,22 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     await Future.delayed(const Duration(seconds: 2));
 
     if (mounted) {
+      final feedProvider = Provider.of<FeedProvider>(context, listen: false);
+      
+      final newVideo = VideoModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        title: _descController.text.trim().isEmpty 
+            ? 'New premium dynamic post description!' 
+            : _descController.text.trim(),
+        username: 'you',
+        videoPath: _videoFile!.path,
+        colors: const [Color(0xFFFF416C), Color(0xFFFF4B2B)], // Sleek custom Sunset Orange for newly posted videos
+      );
+
+      // Insert at Index 0 of both Following and For You feeds
+      feedProvider.addVideoToForYou(newVideo);
+      feedProvider.addVideoToFollowing(newVideo);
+
       setState(() {
         _isUploading = false;
       });
