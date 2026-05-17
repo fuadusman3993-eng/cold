@@ -41,93 +41,119 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Fixed Top Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  AnimatedScaleButton(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CreatePostScreen(),
-                          fullscreenDialog: true,
-                        ),
-                      );
-                    },
-                    child: const Icon(Icons.add, color: Colors.white, size: 32),
-                  ),
-                  Text(
-                    'COLD',
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -1.0,
-                      fontSize: 24,
-                    ),
-                  ),
-                  AnimatedScaleButton(
-                    onTap: () {},
-                    child: const Icon(Icons.search, color: Colors.white, size: 32),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Fixed Story Section (Horizontal Scroll)
-            _buildStoriesSection(),
-
-            // Fixed Feed Navigation (TabBar)
-            TabBar(
+      extendBodyBehindAppBar: true, 
+      body: Stack(
+        children: [
+          // BASE LAYER: Full-screen scrollable feeds
+          Positioned.fill(
+            child: TabBarView(
               controller: _tabController,
-              onTap: _handleTabTap,
-              indicator: UnderlineTabIndicator(
-                borderSide: const BorderSide(color: Colors.white, width: 4.0),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              indicatorSize: TabBarIndicatorSize.label,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white54,
-              labelStyle: GoogleFonts.inter(
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
-              ),
-              unselectedLabelStyle: GoogleFonts.inter(
-                fontWeight: FontWeight.w500,
-                fontSize: 16,
-              ),
-              tabs: const [
-                Tab(text: "For You"),
-                Tab(text: "Following"),
+              physics: const ClampingScrollPhysics(),
+              children: [
+                _buildImmersiveFeed('For You'),
+                _buildImmersiveFeed('Following'),
               ],
             ),
-            
-            // Scrollable Feeds
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                physics: const ClampingScrollPhysics(), // Provide standard paging physics
-                children: [
-                  _buildFeedDummy('For You Feed'),
-                  _buildFeedDummy('Following Feed'),
-                ],
+          ),
+          
+          // TOP OVERLAY LAYER: UI elements floating over the media
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.9),
+                    Colors.black.withOpacity(0.4),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.6, 1.0],
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Top Bar
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          AnimatedScaleButton(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CreatePostScreen(),
+                                  fullscreenDialog: true,
+                                ),
+                              );
+                            },
+                            child: const Icon(Icons.add, color: Colors.white, size: 32),
+                          ),
+                          Text(
+                            'Cold',
+                            style: GoogleFonts.pacifico(
+                              color: Colors.white,
+                              fontSize: 28,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                          AnimatedScaleButton(
+                            onTap: () {},
+                            child: const Icon(Icons.search, color: Colors.white, size: 32),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Story Section
+                    _buildStoriesSection(),
+
+                    // Feed Navigation (TabBar)
+                    TabBar(
+                      controller: _tabController,
+                      onTap: _handleTabTap,
+                      indicator: UnderlineTabIndicator(
+                        borderSide: const BorderSide(color: Colors.white, width: 3.0),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      indicatorSize: TabBarIndicatorSize.label,
+                      labelColor: Colors.white,
+                      unselectedLabelColor: Colors.white70,
+                      labelStyle: GoogleFonts.inter(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                      unselectedLabelStyle: GoogleFonts.inter(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                      ),
+                      tabs: const [
+                        Tab(text: "For You"),
+                        Tab(text: "Following"),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildStoriesSection() {
     return Container(
-      height: 100,
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      height: 90,
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: 10,
@@ -137,10 +163,11 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
           return Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 60,
-                  height: 60,
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
@@ -153,12 +180,15 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                       ? const Icon(Icons.add, color: Colors.white)
                       : const Icon(Icons.person, color: Colors.white54),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   isAddStory ? 'Your Story' : 'User $index',
                   style: GoogleFonts.inter(
-                    color: Colors.white70,
+                    color: Colors.white,
                     fontSize: 11,
+                    shadows: [
+                      Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 2)
+                    ],
                   ),
                 ),
               ],
@@ -169,22 +199,52 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
     );
   }
 
-  Widget _buildFeedDummy(String title) {
-    return ListView.builder(
-      padding: const EdgeInsets.only(top: 10, bottom: 80),
+  Widget _buildImmersiveFeed(String title) {
+    return PageView.builder(
+      scrollDirection: Axis.vertical,
       itemCount: 10,
       itemBuilder: (context, index) {
+        // Generating vibrant gradients to simulate beautiful media
+        final colors = [
+          [const Color(0xFF1A2980), const Color(0xFF26D0CE)], // Blue/Cyan
+          [const Color(0xFF4A00E0), const Color(0xFF8E2DE2)], // Deep Purple
+          [const Color(0xFF0F2027), const Color(0xFF203A43)], // Dark Slate
+          [const Color(0xFF373B44), const Color(0xFF4286f4)], // Grey/Blue
+        ];
+        final colorPair = colors[index % colors.length];
+
         return Container(
-          height: 300,
-          margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: colorPair,
+            ),
           ),
           child: Center(
-            child: Text(
-              '$title - Post $index',
-              style: const TextStyle(color: Colors.white54),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '$title - Media $index',
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 10)
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Full-screen edge-to-edge post',
+                  style: GoogleFonts.inter(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
           ),
         );

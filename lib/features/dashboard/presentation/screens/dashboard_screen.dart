@@ -37,6 +37,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final scaffold = Scaffold(
       backgroundColor: Colors.black,
+      extendBody: true,
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
@@ -55,13 +56,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       bottomNavigationBar: isDesktop
           ? null
-          : BottomNavigationBar(
-              backgroundColor: Colors.black,
-              selectedItemColor: Colors.white,
-              unselectedItemColor: Colors.white60,
-              type: BottomNavigationBarType.fixed,
-              currentIndex: _currentIndex,
-              onTap: _onItemTapped,
+          : Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.9),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+              child: BottomNavigationBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                selectedItemColor: Colors.white,
+                unselectedItemColor: Colors.white60,
+                type: BottomNavigationBarType.fixed,
+                currentIndex: _currentIndex,
+                onTap: _onItemTapped,
               items: const [
                 BottomNavigationBarItem(
                   icon: Icon(Icons.home_outlined),
@@ -90,6 +103,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ],
             ),
+          ),
     );
 
     return Container(
