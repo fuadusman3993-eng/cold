@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cold/features/post/presentation/screens/create_post_screen.dart';
+import 'package:cold/core/utils/navigation_helper.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -135,12 +136,9 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                             children: [
                               AnimatedScaleButton(
                                 onTap: () {
-                                  Navigator.push(
+                                  FeedNavigator.mapsTo(
                                     context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const CreatePostScreen(),
-                                      fullscreenDialog: true,
-                                    ),
+                                    const CreatePostScreen(),
                                   );
                                 },
                                 child: const Icon(Icons.add, color: Colors.white, size: 28),
@@ -392,7 +390,7 @@ class _InteractionPanel extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildProfileAvatar(),
+          _buildProfileAvatar(context),
           const SizedBox(height: 18),
           _buildInteractionButton(Icons.favorite, '8,497'),
           const SizedBox(height: 16),
@@ -406,7 +404,7 @@ class _InteractionPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileAvatar() {
+  Widget _buildProfileAvatar(BuildContext context) {
     return SizedBox(
       width: 56,
       height: 68,
@@ -425,13 +423,21 @@ class _InteractionPanel extends StatelessWidget {
           ),
           Positioned(
             bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0xFF0088FF), // Premium blue accent
+            child: GestureDetector(
+              onTap: () {
+                FeedNavigator.mapsTo(
+                  context,
+                  const CreatePostScreen(),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFF0088FF), // Premium blue accent
+                ),
+                child: const Icon(Icons.add, color: Colors.white, size: 16),
               ),
-              child: const Icon(Icons.add, color: Colors.white, size: 16),
             ),
           ),
         ],

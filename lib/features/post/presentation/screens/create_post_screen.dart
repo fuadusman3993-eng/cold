@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
+import 'package:flutter/foundation.dart';
+import 'package:universal_io/io.dart';
 import 'dart:async';
 
 class CreatePostScreen extends StatefulWidget {
@@ -10,166 +14,198 @@ class CreatePostScreen extends StatefulWidget {
 }
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
-  final TextEditingController _textController = TextEditingController();
-  bool _isPosting = false;
+  final ImagePicker _picker = ImagePicker();
+  XFile? _videoFile;
+  VideoPlayerController? _videoController;
+  final TextEditingController _descController = TextEditingController();
+  bool _isUploading = false;
+  bool _isPlaying = true;
 
   static const Color _electricBlue = Color(0xFF0088FF);
 
   @override
   void dispose() {
-    _textController.dispose();
+    _videoController?.dispose();
+    _descController.dispose();
     super.dispose();
   }
 
-  Future<void> _handlePost() async {
-    if (_textController.text.trim().isEmpty) return;
+  Future<void> _pickVideo(ImageSource source) async {
+    try {
+      final XFile? file = await _picker.pickVideo(
+        source: source,
+        maxDuration: const Duration(minutes: 5),
+      );
+      if (file != null) {
+        setState(() {
+          _videoFile = file;
+          _isPlaying = true;
+        });
+        await _initializeVideoPlayer();
+      }
+    } catch (e) {
+      debugPrint('Error picking video: $e');
+    }
+  }
+
+  Future<void> _initializeVideoPlayer() async {
+    if (_videoController != null) {
+      await _videoController!.dispose();
+      _videoController = null;
+    }
+
+    if (kIsWeb) {
+      _videoController = VideoPlayerController.networkUrl(Uri.parse(_videoFile!.path));
+    } else {
+      _videoController = VideoPlayerController.file(File(_videoFile!.path));
+    }
+
+    try {
+      await _videoController!.initialize();
+      await _videoController!.setLooping(true);
+      await _videoController!.play();
+      setState(() {});
+    } catch (e) {
+      debugPrint('Error initializing video controller: $e');
+    }
+  }
+
+  void _togglePlayPause() {
+    if (_videoController == null || !_videoController!.value.isInitialized) return;
 
     setState(() {
-      _isPosting = true;
+      if (_isPlaying) {
+        _videoController!.pause();
+        _isPlaying = false;
+      } else {
+        _videoController!.play();
+        _isPlaying = true;
+      }
+    });
+  }
+
+  Future<void> _handlePublish() async {
+    if (_videoFile == null || _isUploading) return;
+
+    setState(() {
+      _isUploading = true;
     });
 
-    // Mock Islamic AI Analysis Engine pipeline scan
-    await Future.delayed(const Duration(milliseconds: 1500));
+    // Mock asynchronous backend connection/storage upload pipeline
+    await Future.delayed(const Duration(seconds: 2));
 
     if (mounted) {
       setState(() {
-        _isPosting = false;
+        _isUploading = false;
       });
-      Navigator.pop(context); // Close after successful post
+      Navigator.pop(context);
     }
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _videoController?.dispose();
+      _videoController = null;
+      _videoFile = null;
+      _descController.clear();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool hasText = _textController.text.trim().isNotEmpty;
-
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(hasText),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildCompositionArea(),
-                    const SizedBox(height: 24),
-                    _buildMediaPickerStrip(),
-                  ],
+        child: _videoFile == null ? _buildSelectionView() : _buildPreviewView(),
+      ),
+    );
+  }
+
+  // Pure black premium view prompting user to Record or Upload
+  Widget _buildSelectionView() {
+    return Column(
+      children: [
+        // Header
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                onPressed: () => Navigator.pop(context),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                'Create Post',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
                 ),
               ),
-            ),
-            _buildActionToolbar(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(bool hasText) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white, size: 28),
-            onPressed: () {
-              if (!_isPosting) Navigator.pop(context);
-            },
+            ],
           ),
-          ElevatedButton(
-            onPressed: (hasText && !_isPosting) ? _handlePost : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _electricBlue,
-              disabledBackgroundColor: const Color(0xFF111111),
-              foregroundColor: Colors.white,
-              disabledForegroundColor: Colors.white24,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-            child: _isPosting
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : Text(
-                    'Post',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                    ),
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompositionArea() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const CircleAvatar(
-          radius: 20,
-          backgroundColor: Colors.white10,
-          child: Icon(Icons.person, color: Colors.white54),
         ),
-        const SizedBox(width: 12),
+        
         Expanded(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextField(
-                controller: _textController,
-                style: const TextStyle(color: Colors.white, fontSize: 18),
-                cursorColor: _electricBlue,
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                onChanged: (text) => setState(() {}),
-                decoration: const InputDecoration(
-                  hintText: "What's happening?",
-                  hintStyle: TextStyle(color: Colors.white24, fontSize: 18),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
+              // Beautiful minimal camera visual
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.03),
+                  border: Border.all(color: Colors.white10, width: 2),
+                ),
+                child: const Icon(
+                  Icons.videocam_outlined,
+                  color: Colors.white54,
+                  size: 48,
                 ),
               ),
               const SizedBox(height: 24),
-              InkWell(
-                onTap: () {},
-                borderRadius: BorderRadius.circular(20),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.public, color: _electricBlue, size: 16),
-                      const SizedBox(width: 6),
-                      Text(
-                        "Everyone can reply",
-                        style: GoogleFonts.inter(
-                          color: _electricBlue,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
+              Text(
+                'Share a video on Cold',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 22,
                 ),
               ),
-              const SizedBox(height: 12),
-              Divider(color: Colors.white.withOpacity(0.1), thickness: 0.5),
+              const SizedBox(height: 8),
+              Text(
+                'Capture live or upload from your library',
+                style: GoogleFonts.inter(
+                  color: Colors.white38,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 48),
+
+              // Interactive Action Panels
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                child: Column(
+                  children: [
+                    _buildSelectionCard(
+                      icon: Icons.camera_enhance_outlined,
+                      title: 'Record Live Video',
+                      subtitle: 'Use your front or back camera',
+                      onTap: () => _pickVideo(ImageSource.camera),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSelectionCard(
+                      icon: Icons.video_library_outlined,
+                      title: 'Select from Gallery',
+                      subtitle: 'Choose a saved video from your device',
+                      onTap: () => _pickVideo(ImageSource.gallery),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -177,68 +213,206 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  Widget _buildMediaPickerStrip() {
-    return SizedBox(
-      height: 90,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: 6,
-        padding: const EdgeInsets.only(left: 52), // Align with text area
-        itemBuilder: (context, index) {
-          final isCamera = index == 0;
-          return Container(
-            width: 90,
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              color: isCamera ? Colors.transparent : Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isCamera ? Colors.white38 : Colors.transparent,
-                width: 1,
-              ),
-            ),
-            child: Center(
-              child: Icon(
-                isCamera ? Icons.camera_alt_outlined : Icons.image_outlined,
-                color: isCamera ? Colors.white : Colors.white24,
-                size: isCamera ? 32 : 24,
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
+  // Previews the selected video & captures caption/tags
+  Widget _buildPreviewView() {
+    final bool isInitialized = _videoController != null && _videoController!.value.isInitialized;
 
-  Widget _buildActionToolbar() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: Colors.white.withOpacity(0.05), width: 1),
+    return Column(
+      children: [
+        // Custom top navigation bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: _isUploading ? null : _clearSelection,
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.inter(
+                    color: Colors.white54,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Text(
+                'Preview Post',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              ElevatedButton(
+                onPressed: _isUploading ? null : _handlePublish,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _electricBlue,
+                  disabledBackgroundColor: const Color(0xFF111111),
+                  foregroundColor: Colors.white,
+                  disabledForegroundColor: Colors.white24,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: _isUploading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        'Publish',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+              ),
+            ],
+          ),
         ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          _buildToolbarIcon(Icons.image_outlined),
-          _buildToolbarIcon(Icons.gif_box_outlined),
-          _buildToolbarIcon(Icons.poll_outlined),
-          _buildToolbarIcon(Icons.location_on_outlined),
-          _buildToolbarIcon(Icons.mic_none_outlined),
-        ],
-      ),
+
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Video Preview Container
+                GestureDetector(
+                  onTap: _togglePlayPause,
+                  child: Container(
+                    height: 380,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.02),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (isInitialized)
+                          Positioned.fill(
+                            child: FittedBox(
+                              fit: BoxFit.cover,
+                              child: SizedBox(
+                                width: _videoController!.value.size.width,
+                                height: _videoController!.value.size.height,
+                                child: VideoPlayer(_videoController!),
+                              ),
+                            ),
+                          )
+                        else
+                          const Center(
+                            child: CircularProgressIndicator(
+                              color: _electricBlue,
+                            ),
+                          ),
+
+                        // Animated Play/Pause overlay
+                        if (!_isPlaying)
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withOpacity(0.5),
+                            ),
+                            child: const Icon(
+                              Icons.play_arrow,
+                              color: Colors.white,
+                              size: 40,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Description and tag inputs
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.03),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withOpacity(0.05)),
+                  ),
+                  child: TextField(
+                    controller: _descController,
+                    maxLines: 4,
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    cursorColor: _electricBlue,
+                    decoration: InputDecoration(
+                      hintText: 'Write a description, add #tags...',
+                      hintStyle: GoogleFonts.inter(
+                        color: Colors.white30,
+                        fontSize: 16,
+                      ),
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildToolbarIcon(IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 20),
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: Icon(icon, color: _electricBlue, size: 24),
+  Widget _buildSelectionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.03),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white70, size: 32),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      color: Colors.white38,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.white24),
+          ],
         ),
       ),
     );
