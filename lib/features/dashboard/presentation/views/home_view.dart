@@ -85,17 +85,14 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          AnimatedScaleButton(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const CreatePostScreen(),
-                                  fullscreenDialog: true,
-                                ),
-                              );
-                            },
-                            child: const Icon(Icons.add, color: Colors.white, size: 32),
+                          // Left side: Cold Logo
+                          Text(
+                            'Cold',
+                            style: GoogleFonts.pacifico(
+                              color: Colors.white,
+                              fontSize: 24,
+                              letterSpacing: 1.0,
+                            ),
                           ),
                           // TikTok-Style Centered Tabs
                           SizedBox(
@@ -128,9 +125,28 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                               ],
                             ),
                           ),
-                          AnimatedScaleButton(
-                            onTap: () {},
-                            child: const Icon(Icons.search, color: Colors.white, size: 32),
+                          // Right side: Actions (+ and Search)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AnimatedScaleButton(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const CreatePostScreen(),
+                                      fullscreenDialog: true,
+                                    ),
+                                  );
+                                },
+                                child: const Icon(Icons.add, color: Colors.white, size: 28),
+                              ),
+                              const SizedBox(width: 16),
+                              AnimatedScaleButton(
+                                onTap: () {},
+                                child: const Icon(Icons.search, color: Colors.white, size: 28),
+                              ),
+                            ],
                           ),
                         ],
                       ),
