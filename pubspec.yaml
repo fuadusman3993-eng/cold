@@ -16,6 +16,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   universal_io: ^2.2.2
+  url_launcher: ^6.2.6
+  video_player: ^2.8.6
 
 dev_dependencies:
   flutter_test:

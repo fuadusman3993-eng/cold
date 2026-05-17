@@ -9,8 +9,11 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin {
+class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -39,6 +42,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true, 
@@ -49,9 +53,9 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
             child: TabBarView(
               controller: _tabController,
               physics: const ClampingScrollPhysics(),
-              children: [
-                _buildImmersiveFeed('Following'),
-                _buildImmersiveFeed('For You'),
+              children: const [
+                ImmersiveFeed(title: 'Following'),
+                ImmersiveFeed(title: 'For You'),
               ],
             ),
           ),
@@ -223,8 +227,22 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       ),
     );
   }
+}
+class ImmersiveFeed extends StatefulWidget {
+  final String title;
+  const ImmersiveFeed({super.key, required this.title});
 
-  Widget _buildImmersiveFeed(String title) {
+  @override
+  State<ImmersiveFeed> createState() => _ImmersiveFeedState();
+}
+
+class _ImmersiveFeedState extends State<ImmersiveFeed> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
     return PageView.builder(
       scrollDirection: Axis.vertical,
       itemCount: 10,
@@ -249,31 +267,41 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                   colors: colorPair,
                 ),
               ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '$title - Media $index',
-                      style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 10)
-                        ],
-                      ),
+            ),
+            
+            // Bottom-Left Content Overlay (User Name & Title)
+            Positioned(
+              bottom: 90, // Keeps it clear of the bottom navigation bar
+              left: 16,
+              right: 80, // Leaves room for the right interaction panel
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '@username_$index',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      shadows: [
+                        const Shadow(color: Colors.black54, blurRadius: 4),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Full-screen edge-to-edge post',
-                      style: GoogleFonts.inter(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${widget.title} - This is a sample video post description designed to match the premium TikTok aesthetic.',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 14,
+                      shadows: [
+                        const Shadow(color: Colors.black54, blurRadius: 4),
+                      ],
                     ),
-                  ],
-                ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
             
@@ -363,14 +391,14 @@ class _InteractionPanel extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildProfileAvatar(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           _buildInteractionButton(Icons.favorite, '8,497'),
-          const SizedBox(height: 20),
-          _buildInteractionButton(Icons.chat_bubble, '77'),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+          _buildInteractionButton(Icons.chat_bubble_rounded, '77'),
+          const SizedBox(height: 16),
           _buildInteractionButton(Icons.bookmark, '336'),
-          const SizedBox(height: 20),
-          _buildInteractionButton(Icons.reply, 'Share'),
+          const SizedBox(height: 16),
+          _buildInteractionButton(Icons.reply, 'Share', isMirrored: true),
         ],
       ),
     );
@@ -409,27 +437,36 @@ class _InteractionPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildInteractionButton(IconData icon, String label) {
+  Widget _buildInteractionButton(IconData icon, String label, {bool isMirrored = false}) {
+    Widget iconWidget = Icon(
+      icon,
+      color: Colors.white,
+      size: 32, // Scaled down for a sleeker profile
+      shadows: [
+        Shadow(color: Colors.black.withOpacity(0.6), blurRadius: 8, offset: const Offset(0, 1)),
+      ],
+    );
+
+    if (isMirrored) {
+      iconWidget = Transform.scale(
+        scaleX: -1, // Flips the icon horizontally to match social media 'Share' direction
+        child: iconWidget,
+      );
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          color: Colors.white,
-          size: 36,
-          shadows: [
-            Shadow(color: Colors.black.withOpacity(0.8), blurRadius: 10, offset: const Offset(0, 1)),
-          ],
-        ),
+        iconWidget,
         const SizedBox(height: 4),
         Text(
           label,
           style: TextStyle(
             color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            fontSize: 12, // Scaled down label size
             shadows: [
-              Shadow(color: Colors.black.withOpacity(0.8), blurRadius: 6, offset: const Offset(0, 1)),
+              Shadow(color: Colors.black.withOpacity(0.6), blurRadius: 4, offset: const Offset(0, 1)),
             ],
           ),
         ),
