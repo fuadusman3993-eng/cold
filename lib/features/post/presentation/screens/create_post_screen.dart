@@ -84,21 +84,22 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     });
   }
 
-  Future<void> _handlePublish() async {
+  Future<void> _handlePost() async {
     if (_videoFile == null || _isUploading) return;
 
     setState(() {
       _isUploading = true;
     });
 
-    // Mock asynchronous backend connection/storage upload pipeline
+    // Asynchronous upload task simulated pipeline
     await Future.delayed(const Duration(seconds: 2));
 
     if (mounted) {
       setState(() {
         _isUploading = false;
       });
-      Navigator.pop(context);
+      // Screen must only close after the user explicitly taps 'Post' and it completes
+      Navigator.pop(context); 
     }
   }
 
@@ -121,11 +122,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  // Pure black premium view prompting user to Record or Upload
+  // Pure black selection view
   Widget _buildSelectionView() {
     return Column(
       children: [
-        // Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Row(
@@ -146,12 +146,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ],
           ),
         ),
-        
         Expanded(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Beautiful minimal camera visual
               Container(
                 width: 100,
                 height: 100,
@@ -184,8 +182,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 ),
               ),
               const SizedBox(height: 48),
-
-              // Interactive Action Panels
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32.0),
                 child: Column(
@@ -213,7 +209,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  // Previews the selected video & captures caption/tags
+  // Previews selected video & shows Post controls
   Widget _buildPreviewView() {
     final bool isInitialized = _videoController != null && _videoController!.value.isInitialized;
 
@@ -244,36 +240,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   fontSize: 18,
                 ),
               ),
-              ElevatedButton(
-                onPressed: _isUploading ? null : _handlePublish,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _electricBlue,
-                  disabledBackgroundColor: const Color(0xFF111111),
-                  foregroundColor: Colors.white,
-                  disabledForegroundColor: Colors.white24,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                child: _isUploading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(
-                        'Publish',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                        ),
-                      ),
-              ),
+              const SizedBox(width: 48), // Spacer to balance cancel button
             ],
           ),
         ),
@@ -284,11 +251,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Video Preview Container
+                // Video Preview Player Layer
                 GestureDetector(
                   onTap: _togglePlayPause,
                   child: Container(
-                    height: 380,
+                    height: 360,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.02),
                       borderRadius: BorderRadius.circular(16),
@@ -336,7 +303,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Description and tag inputs
+                // Description input field
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -346,7 +313,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   ),
                   child: TextField(
                     controller: _descController,
-                    maxLines: 4,
+                    maxLines: 3,
                     style: const TextStyle(color: Colors.white, fontSize: 16),
                     cursorColor: _electricBlue,
                     decoration: InputDecoration(
@@ -358,6 +325,40 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       border: InputBorder.none,
                     ),
                   ),
+                ),
+                const SizedBox(height: 24),
+
+                // Prominent high-contrast Post button
+                ElevatedButton(
+                  onPressed: _isUploading ? null : _handlePost,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    disabledBackgroundColor: const Color(0xFF111111),
+                    foregroundColor: Colors.black,
+                    disabledForegroundColor: Colors.white24,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: _isUploading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.black,
+                          ),
+                        )
+                      : Text(
+                          'Post',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 32),
               ],

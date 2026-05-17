@@ -46,6 +46,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
     super.build(context);
     return Scaffold(
       backgroundColor: Colors.black,
+      extendBody: true,
       extendBodyBehindAppBar: true, 
       body: Stack(
         children: [
@@ -394,7 +395,7 @@ class _InteractionPanel extends StatelessWidget {
           const SizedBox(height: 18),
           _buildInteractionButton(Icons.favorite, '8,497'),
           const SizedBox(height: 16),
-          _buildInteractionButton(Icons.chat_bubble_outline, '77'), // Premium outline bubble
+          _buildInteractionButton(Icons.sms_outlined, '77'), // Premium outline SMS bubble
           const SizedBox(height: 16),
           _buildInteractionButton(Icons.bookmark, '336'),
           const SizedBox(height: 16),
