@@ -152,8 +152,19 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                       ),
                     ),
                     
-                    // Story Section
-                    _buildStoriesSection(),
+                    // Story Section (Only visible on 'Following' tab)
+                    AnimatedBuilder(
+                      animation: _tabController,
+                      builder: (context, child) {
+                        return AnimatedSize(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.fastOutSlowIn,
+                          child: _tabController.index == 0
+                              ? _buildStoriesSection()
+                              : const SizedBox.shrink(),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
