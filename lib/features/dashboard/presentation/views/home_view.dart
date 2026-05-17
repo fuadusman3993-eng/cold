@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:cold/features/post/presentation/screens/create_post_screen.dart';
 import 'package:cold/core/utils/navigation_helper.dart';
 import 'package:cold/core/providers/feed_provider.dart';
+import 'package:video_player/video_player.dart';
+import 'package:universal_io/io.dart';
+import 'package:flutter/foundation.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -263,63 +266,138 @@ class _ImmersiveFeedState extends State<ImmersiveFeed> with AutomaticKeepAliveCl
       itemCount: videos.length,
       itemBuilder: (context, index) {
         final video = videos[index];
+        return FeedPostItem(video: video);
+      },
+    );
+  }
+}
 
-        return Stack(
-          children: [
-            // Full-screen background media forced to edges with zero margins
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: video.colors,
+class FeedPostItem extends StatefulWidget {
+  final VideoModel video;
+  const FeedPostItem({super.key, required this.video});
+
+  @override
+  State<FeedPostItem> createState() => _FeedPostItemState();
+}
+
+class _FeedPostItemState extends State<FeedPostItem> {
+  VideoPlayerController? _controller;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePlayer();
+  }
+
+  Future<void> _initializePlayer() async {
+    final path = widget.video.videoPath;
+    if (path.isEmpty) return; // Keep rendering gradient placeholder
+
+    if (kIsWeb) {
+      _controller = VideoPlayerController.networkUrl(Uri.parse(path));
+    } else if (path.startsWith('http') || path.startsWith('https')) {
+      _controller = VideoPlayerController.networkUrl(Uri.parse(path));
+    } else {
+      // 1. File Path Conversion: Safely load local picker path into VideoPlayerController.file
+      _controller = VideoPlayerController.file(File(path));
+    }
+
+    try {
+      await _controller!.initialize();
+      await _controller!.setLooping(true);
+      await _controller!.play();
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading feed video: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // Full-screen background gradient fallback / placeholder
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: widget.video.colors,
+              ),
+            ),
+          ),
+        ),
+
+        // 2. Video Player Layer with exact Initialization Guard
+        if (_controller != null)
+          Positioned.fill(
+            child: _isInitialized && _controller!.value.isInitialized
+                ? FittedBox(
+                    fit: BoxFit.cover,
+                    child: SizedBox(
+                      width: _controller!.value.size.width,
+                      height: _controller!.value.size.height,
+                      child: VideoPlayer(_controller!),
+                    ),
+                  )
+                : const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF0088FF),
+                    ),
                   ),
+          ),
+
+        // Bottom-Left Content Overlay (User Name & Title)
+        Positioned(
+          bottom: 80, // Tightly positioned just above the bottom navigation bar
+          left: 16,
+          right: 80, // Leaves room for the right interaction panel
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '@${widget.video.username}',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  shadows: [
+                    const Shadow(color: Colors.black54, blurRadius: 4),
+                  ],
                 ),
               ),
-            ),
-            
-            // Bottom-Left Content Overlay (User Name & Title)
-            Positioned(
-              bottom: 80, // Tightly positioned just above the bottom navigation bar
-              left: 16,
-              right: 80, // Leaves room for the right interaction panel
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '@${video.username}',
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      shadows: [
-                        const Shadow(color: Colors.black54, blurRadius: 4),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    video.title,
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontSize: 14,
-                      shadows: [
-                        const Shadow(color: Colors.black54, blurRadius: 4),
-                      ],
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+              const SizedBox(height: 8),
+              Text(
+                widget.video.title,
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontSize: 14,
+                  shadows: [
+                    const Shadow(color: Colors.black54, blurRadius: 4),
+                  ],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            
-            // Floating Interaction Panel (TikTok Style)
-            const _InteractionPanel(),
-          ],
-        );
-      },
+            ],
+          ),
+        ),
+
+        // Floating Interaction Panel (TikTok Style)
+        const _InteractionPanel(),
+      ],
     );
   }
 }
