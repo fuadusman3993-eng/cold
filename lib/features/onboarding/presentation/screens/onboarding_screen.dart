@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cold/features/auth/presentation/screens/login_screen.dart';
@@ -23,7 +24,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
     'Lifestyle', 'Art', 'Finance', 'Travel', 'Food', 'Movies', 'Gaming', 'Science'
   ];
 
-  static const Color _electricBlue = Color(0xFF2196F3);
+  static const Color _electricBlue = Color(0xFF0088FF);
   static const Color _charcoal = Color(0xFF1A1A1A);
 
   @override
@@ -60,7 +61,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
       body: PageView(
         controller: _pageController,
         scrollDirection: Axis.vertical,
-        physics: const NeverScrollableScrollPhysics(),
+        physics: _hasAgreedToTerms ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
         children: [
           _buildFirstOnboardingView(context),
           _buildSalatView(context),
@@ -196,69 +197,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
 
   // --- PAGE 2: Salat View ---
   Widget _buildSalatView(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isDesktop = size.width > 900;
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 40.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.wb_sunny_outlined, color: _electricBlue, size: 64),
-            const SizedBox(height: 40),
-            Text(
-              "Salat to guide your day",
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1,
-              ),
-            ),
-            const SizedBox(height: 80),
-            _buildActionButton(context, "Next", true, _nextPage, isDesktop),
-          ],
-        ),
-      ),
+    return AnimatedInfoSlide(
+      icon: Icons.wb_sunny_outlined,
+      title: "Salat to guide your day",
+      accentColor: _electricBlue,
+      onAutoScroll: _nextPage,
     );
   }
 
   // --- PAGE 3: Permissions View ---
   Widget _buildPermissionsView(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isDesktop = size.width > 900;
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 40.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.notifications_active_outlined, color: _electricBlue, size: 64),
-            const SizedBox(height: 40),
-            Text(
-              "Allow permissions",
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              "Stay notified about prayers and analysis updates",
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.white60,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 80),
-            _buildActionButton(context, "Allow", true, _nextPage, isDesktop),
-          ],
-        ),
-      ),
+    return AnimatedInfoSlide(
+      icon: Icons.notifications_active_outlined,
+      title: "Allow permissions",
+      subtitle: "Stay notified about prayers and analysis updates",
+      accentColor: _electricBlue,
+      onAutoScroll: _nextPage,
     );
   }
 
@@ -305,21 +259,43 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                         });
                       },
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        duration: const Duration(milliseconds: 300),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
-                          color: isSelected ? _electricBlue : _charcoal,
+                          color: Colors.black,
                           borderRadius: BorderRadius.circular(30),
                           border: Border.all(
-                            color: isSelected ? _electricBlue : Colors.white10,
+                            color: isSelected ? _electricBlue : const Color(0xFF222222),
+                            width: 1.5,
                           ),
+                          boxShadow: isSelected ? [
+                            BoxShadow(color: _electricBlue.withOpacity(0.15), blurRadius: 10, spreadRadius: 1)
+                          ] : [],
                         ),
-                        child: Text(
-                          interest,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white70,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              transitionBuilder: (Widget child, Animation<double> animation) {
+                                return ScaleTransition(scale: animation, child: FadeTransition(opacity: animation, child: child));
+                              },
+                              child: Icon(
+                                isSelected ? Icons.check : Icons.add,
+                                key: ValueKey<bool>(isSelected),
+                                color: isSelected ? _electricBlue : Colors.white54,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              interest,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : Colors.white70,
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -341,8 +317,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   flex: 2,
                   child: _buildActionButton(
                     context, 
-                    "Next (${_selectedInterests.length})", 
-                    _selectedInterests.isNotEmpty, 
+                    _selectedInterests.length < 3 ? "Select 3+ (${_selectedInterests.length})" : "Next (${_selectedInterests.length})", 
+                    _selectedInterests.length >= 3, 
                     _finishOnboarding, 
                     isDesktop
                   ),
@@ -384,7 +360,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
       builder: (context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Color(0xFF0A0A0A),
+            color: Colors.black,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             border: Border(
               top: BorderSide(color: Colors.white10, width: 0.5),
@@ -454,9 +430,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
       child: ElevatedButton(
         onPressed: enabled ? onPressed : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: enabled ? _electricBlue : _charcoal,
+          backgroundColor: enabled ? _electricBlue : const Color(0xFF111111),
           foregroundColor: Colors.white,
-          disabledBackgroundColor: _charcoal,
+          disabledBackgroundColor: const Color(0xFF111111),
           disabledForegroundColor: Colors.white24,
           minimumSize: Size(double.infinity, isDesktop ? 64 : 56),
           elevation: 0,
@@ -489,6 +465,120 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
           ),
         ),
       ],
+    );
+  }
+}
+
+class AnimatedInfoSlide extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Color accentColor;
+  final VoidCallback onAutoScroll;
+
+  const AnimatedInfoSlide({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    required this.accentColor,
+    required this.onAutoScroll,
+  });
+
+  @override
+  State<AnimatedInfoSlide> createState() => _AnimatedInfoSlideState();
+}
+
+class _AnimatedInfoSlideState extends State<AnimatedInfoSlide> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+
+    _controller.forward();
+
+    _timer = Timer(const Duration(milliseconds: 3500), () {
+      if (mounted) {
+        widget.onAutoScroll();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40.0),
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: widget.accentColor.withOpacity(0.2),
+                        blurRadius: 30,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Icon(widget.icon, color: widget.accentColor, size: 72),
+                ),
+                const SizedBox(height: 40),
+                Text(
+                  widget.title,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -1,
+                  ),
+                ),
+                if (widget.subtitle != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.subtitle!,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white60,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
