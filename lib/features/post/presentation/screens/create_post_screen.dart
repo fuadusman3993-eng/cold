@@ -8,6 +8,8 @@ import 'dart:async';
 import 'package:provider/provider.dart';
 import 'package:cold/core/providers/feed_provider.dart';
 
+enum PostStep { select, preview }
+
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
 
@@ -20,8 +22,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   XFile? _videoFile;
   VideoPlayerController? _videoController;
   final TextEditingController _descController = TextEditingController();
+  
   bool _isUploading = false;
   bool _isPlaying = true;
+  bool _isProcessingMedia = false; // Transition Lock to prevent duplicate launches
+  PostStep _currentStep = PostStep.select; // Cleared lifecycle steps
 
   static const Color _electricBlue = Color(0xFF0088FF);
 
@@ -33,6 +38,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   Future<void> _pickVideo(ImageSource source) async {
+    // 1. Loading/Transition Lock: Return early if media is already processing
+    if (_isProcessingMedia) return;
+    
+    setState(() {
+      _isProcessingMedia = true;
+    });
+
     try {
       final XFile? file = await _picker.pickVideo(
         source: source,
@@ -42,11 +54,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         setState(() {
           _videoFile = file;
           _isPlaying = true;
+          _currentStep = PostStep.preview; // Set step to preview UI
         });
         await _initializeVideoPlayer();
       }
     } catch (e) {
       debugPrint('Error picking video: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingMedia = false;
+        });
+      }
     }
   }
 
@@ -106,17 +125,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             : _descController.text.trim(),
         username: 'you',
         videoPath: _videoFile!.path,
-        colors: const [Color(0xFFFF416C), Color(0xFFFF4B2B)], // Sleek custom Sunset Orange for newly posted videos
+        colors: const [Color(0xFFFF416C), Color(0xFFFF4B2B)],
       );
 
-      // Insert at Index 0 of both Following and For You feeds
       feedProvider.addVideoToForYou(newVideo);
       feedProvider.addVideoToFollowing(newVideo);
 
       setState(() {
         _isUploading = false;
       });
-      // Screen must only close after the user explicitly taps 'Post' and it completes
+
+      // 3. Reset State & Dispose on Pop: Clear out active players to avoid ghost leak threads
+      _videoController?.dispose();
+      _videoController = null;
+      _videoFile = null;
+
       Navigator.pop(context); 
     }
   }
@@ -126,6 +149,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       _videoController?.dispose();
       _videoController = null;
       _videoFile = null;
+      _currentStep = PostStep.select;
       _descController.clear();
     });
   }
@@ -135,7 +159,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: _videoFile == null ? _buildSelectionView() : _buildPreviewView(),
+        // 2. Lifecycle step-based UI conditional rendering
+        child: _currentStep == PostStep.select ? _buildSelectionView() : _buildPreviewView(),
       ),
     );
   }
