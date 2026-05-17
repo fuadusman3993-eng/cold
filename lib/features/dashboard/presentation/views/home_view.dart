@@ -258,20 +258,22 @@ class _ImmersiveFeedState extends State<ImmersiveFeed> with AutomaticKeepAliveCl
 
         return Stack(
           children: [
-            // Full-screen background media
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: colorPair,
+            // Full-screen background media forced to edges with zero margins
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: colorPair,
+                  ),
                 ),
               ),
             ),
             
             // Bottom-Left Content Overlay (User Name & Title)
             Positioned(
-              bottom: 90, // Keeps it clear of the bottom navigation bar
+              bottom: 80, // Tightly positioned just above the bottom navigation bar
               left: 16,
               right: 80, // Leaves room for the right interaction panel
               child: Column(
@@ -394,7 +396,7 @@ class _InteractionPanel extends StatelessWidget {
           const SizedBox(height: 18),
           _buildInteractionButton(Icons.favorite, '8,497'),
           const SizedBox(height: 16),
-          _buildInteractionButton(Icons.chat_bubble_rounded, '77'),
+          _buildInteractionButton(Icons.chat_bubble_outline, '77'), // Premium outline bubble
           const SizedBox(height: 16),
           _buildInteractionButton(Icons.bookmark, '336'),
           const SizedBox(height: 16),
