@@ -628,6 +628,10 @@ class _InteractionPanel extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Micro-resized profile avatar shifted to the top
+          _buildProfileAvatar(context),
+          const SizedBox(height: 24), // Elegant separation between avatar and first button
+          
           // Interactions (Like, Comment, Bookmark, Share)
           _buildInteractionButton(
             video.isLiked ? Icons.favorite : LucideIcons.heart, 
@@ -655,10 +659,6 @@ class _InteractionPanel extends StatelessWidget {
             'Share', 
             onTap: () => _showShareMenu(context),
           ),
-          const SizedBox(height: 24), // Elegant separation between buttons and the repositioned avatar
-          
-          // Micro-resized profile avatar shifted downward
-          _buildProfileAvatar(context),
         ],
       ),
     );

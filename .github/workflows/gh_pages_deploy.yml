@@ -19,14 +19,19 @@ jobs:
         with:
           flutter-version: '3.22.0'
           channel: 'stable'
-          cache: true
+          cache: false
+
+      - name: Clean Cache & Environment
+        run: |
+          flutter clean
+          flutter pub cache clean -f
 
       - name: Get Dependencies
         run: flutter pub get
 
       - name: Build Web
-        # Standard production build for web (obfuscate not supported on web)
-        run: flutter build web --release --base-href "/cold/" --web-renderer canvaskit
+        # Standard production build for web (obfuscate not supported on web) with no icon tree shaking for stable compilation
+        run: flutter build web --release --base-href "/cold/" --web-renderer canvaskit --no-tree-shake-icons
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
