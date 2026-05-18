@@ -468,25 +468,196 @@ class _AnimatedScaleButtonState extends State<AnimatedScaleButton> with SingleTi
 class _InteractionPanel extends StatelessWidget {
   const _InteractionPanel();
 
+  void _showShareMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF0A0A0A), // Extremely dark minimalist black
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (context) {
+        return SafeArea(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Clean drag handle
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Share & Actions',
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Horizontal Action List
+                SizedBox(
+                  height: 90,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    children: [
+                      _buildShareOption(
+                        context: context,
+                        icon: LucideIcons.repeat,
+                        label: 'Repost',
+                        color: const Color(0xFF0088FF), // Premium blue accent
+                        onTap: () {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: const Color(0xFF161616),
+                              content: Text(
+                                'Reposted successfully!',
+                                style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w500),
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                      ),
+                      _buildShareOption(
+                        context: context,
+                        icon: LucideIcons.link,
+                        label: 'Copy Link',
+                        color: Colors.white.withOpacity(0.08),
+                        onTap: () {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: const Color(0xFF161616),
+                              content: Text(
+                                'Link copied to clipboard!',
+                                style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w500),
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                      ),
+                      _buildShareOption(
+                        context: context,
+                        icon: LucideIcons.send,
+                        label: 'Send',
+                        color: Colors.white.withOpacity(0.08),
+                        onTap: () => Navigator.pop(context),
+                      ),
+                      _buildShareOption(
+                        context: context,
+                        icon: LucideIcons.bookmark,
+                        label: 'Collection',
+                        color: Colors.white.withOpacity(0.08),
+                        onTap: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildShareOption({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 24),
+      child: AnimatedScaleButton(
+        onTap: onTap,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color,
+              ),
+              child: Center(
+                child: Icon(icon, color: Colors.white, size: 22),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                color: Colors.white70,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 100,
+      bottom: 90, // Positioned optimally above the bottom nav bar
       right: 16,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Interactions (Like, Comment, Bookmark, Share)
+          _buildInteractionButton(
+            LucideIcons.heart, 
+            '8,497', 
+            onTap: () {},
+          ),
+          const SizedBox(height: 20),
+          _buildInteractionButton(
+            LucideIcons.messageCircle, 
+            '77', 
+            onTap: () {},
+          ),
+          const SizedBox(height: 20),
+          _buildInteractionButton(
+            LucideIcons.bookmark, 
+            '336', 
+            onTap: () {},
+          ),
+          const SizedBox(height: 20),
+          _buildInteractionButton(
+            LucideIcons.send, 
+            'Share', 
+            onTap: () => _showShareMenu(context),
+          ),
+          const SizedBox(height: 24), // Elegant separation between buttons and the repositioned avatar
+          
+          // Micro-resized profile avatar shifted downward
           _buildProfileAvatar(context),
-          const SizedBox(height: 18),
-          _buildInteractionButton(LucideIcons.heart, '8,497'),
-          const SizedBox(height: 16),
-          _buildInteractionButton(LucideIcons.messageCircle, '77'), // Premium outline SMS bubble
-          const SizedBox(height: 16),
-          _buildInteractionButton(LucideIcons.repeat, '12'), // Repost
-          const SizedBox(height: 16),
-          _buildInteractionButton(LucideIcons.bookmark, '336'),
-          const SizedBox(height: 16),
-          _buildInteractionButton(LucideIcons.send, 'Share'),
         ],
       ),
     );
@@ -494,20 +665,20 @@ class _InteractionPanel extends StatelessWidget {
 
   Widget _buildProfileAvatar(BuildContext context) {
     return SizedBox(
-      width: 56,
-      height: 68,
+      width: 44,
+      height: 52,
       child: Stack(
         alignment: Alignment.topCenter,
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
+              border: Border.all(color: Colors.white, width: 1.5),
               color: Colors.white10,
             ),
-            child: const Icon(LucideIcons.user, color: Colors.white54, size: 30),
+            child: const Icon(LucideIcons.user, color: Colors.white70, size: 20),
           ),
           Positioned(
             bottom: 0,
@@ -524,7 +695,7 @@ class _InteractionPanel extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: Color(0xFF0088FF), // Premium blue accent
                 ),
-                child: const Icon(LucideIcons.plus, color: Colors.white, size: 16),
+                child: const Icon(LucideIcons.plus, color: Colors.white, size: 10),
               ),
             ),
           ),
@@ -533,40 +704,43 @@ class _InteractionPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildInteractionButton(IconData icon, String label, {bool isMirrored = false}) {
+  Widget _buildInteractionButton(IconData icon, String label, {required VoidCallback onTap, bool isMirrored = false}) {
     Widget iconWidget = Icon(
       icon,
       color: Colors.white,
-      size: 32, // Scaled down for a sleeker profile
+      size: 28, // Sized down to 28 for ultra-minimalist, thin-stroke feel
       shadows: [
-        Shadow(color: Colors.black.withOpacity(0.6), blurRadius: 8, offset: const Offset(0, 1)),
+        Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 6, offset: const Offset(0, 1)),
       ],
     );
 
     if (isMirrored) {
       iconWidget = Transform.scale(
-        scaleX: -1, // Flips the icon horizontally to match social media 'Share' direction
+        scaleX: -1,
         child: iconWidget,
       );
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        iconWidget,
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 12, // Scaled down label size
-            shadows: [
-              Shadow(color: Colors.black.withOpacity(0.6), blurRadius: 4, offset: const Offset(0, 1)),
-            ],
+    return AnimatedScaleButton(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          iconWidget,
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 11, // Delicate minimalist size
+              shadows: [
+                Shadow(color: Colors.black.withOpacity(0.6), blurRadius: 4, offset: const Offset(0, 1)),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
