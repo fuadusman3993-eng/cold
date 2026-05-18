@@ -5,7 +5,6 @@ import 'package:cold/features/post/presentation/screens/create_post_screen.dart'
 import 'package:cold/core/utils/navigation_helper.dart';
 import 'package:cold/core/providers/feed_provider.dart';
 import 'package:video_player/video_player.dart';
-import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cold/core/utils/video_player_helper.dart';

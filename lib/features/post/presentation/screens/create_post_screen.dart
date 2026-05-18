@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/foundation.dart';
-import 'package:universal_io/io.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
 import 'package:cold/core/providers/feed_provider.dart';

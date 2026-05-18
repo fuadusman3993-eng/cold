@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:universal_io/io.dart';
 import 'package:video_player/video_player.dart';
+import 'video_player_file_stub.dart'
+    if (dart.library.io) 'video_player_file_mobile.dart'
+    if (dart.library.html) 'video_player_file_web.dart' as file_controller;
 
 VideoPlayerController createVideoPlayerController(String url) {
   if (kIsWeb) {
@@ -8,7 +10,7 @@ VideoPlayerController createVideoPlayerController(String url) {
   } else {
     final isLocal = !(url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('assets/'));
     if (isLocal) {
-      return VideoPlayerController.file(File(url));
+      return file_controller.getFileVideoPlayerController(url);
     } else {
       return VideoPlayerController.networkUrl(Uri.parse(url));
     }
