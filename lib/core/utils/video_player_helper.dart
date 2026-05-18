@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:video_player/video_player.dart';
 import 'video_player_file_stub.dart'
-    if (dart.library.io) 'video_player_file_mobile.dart'
-    if (dart.library.html) 'video_player_file_web.dart' as file_controller;
+    if (dart.library.io) 'video_player_file_mobile.dart' as file_controller;
 
 VideoPlayerController createVideoPlayerController(String url) {
   if (kIsWeb) {
