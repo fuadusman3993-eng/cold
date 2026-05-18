@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
+import 'package:cold/core/providers/feed_provider.dart';
 import 'package:cold/core/utils/video_player_helper.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -162,7 +163,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     });
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
