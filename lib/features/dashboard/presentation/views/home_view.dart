@@ -7,7 +7,8 @@ import 'package:cold/core/providers/feed_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:cold/core/utils/video_player_helper.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -295,13 +296,7 @@ class _FeedPostItemState extends State<FeedPostItem> {
     final url = widget.video.url;
     if (url.isEmpty) return; // Keep rendering gradient placeholder
 
-    final isLocal = !kIsWeb && !(url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('assets/'));
-
-    if (isLocal) {
-      _controller = VideoPlayerController.file(File(url));
-    } else {
-      _controller = VideoPlayerController.networkUrl(Uri.parse(url));
-    }
+    _controller = createVideoPlayerController(url);
 
     try {
       await _controller!.initialize();

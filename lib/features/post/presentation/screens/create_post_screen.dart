@@ -7,6 +7,7 @@ import 'package:universal_io/io.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
 import 'package:cold/core/providers/feed_provider.dart';
+import 'package:cold/core/utils/video_player_helper.dart';
 
 enum PostStep { select, preview }
 
@@ -75,11 +76,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       _videoController = null;
     }
 
-    if (kIsWeb) {
-      _videoController = VideoPlayerController.networkUrl(Uri.parse(_videoFile!.path));
-    } else {
-      _videoController = VideoPlayerController.file(File(_videoFile!.path));
-    }
+    _videoController = createVideoPlayerController(_videoFile!.path);
 
     try {
       await _videoController!.initialize();
