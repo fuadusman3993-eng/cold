@@ -7,6 +7,7 @@ import 'package:cold/core/providers/feed_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -147,12 +148,12 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                                     const CreatePostScreen(),
                                   );
                                 },
-                                child: const Icon(Icons.add, color: Colors.white, size: 28),
+                                child: const Icon(LucideIcons.plus, color: Colors.white, size: 28),
                               ),
                               const SizedBox(width: 16),
                               AnimatedScaleButton(
                                 onTap: () {},
-                                child: const Icon(Icons.search, color: Colors.white, size: 28),
+                                child: const Icon(LucideIcons.search, color: Colors.white, size: 28),
                               ),
                             ],
                           ),
@@ -210,8 +211,8 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                     color: Colors.white10,
                   ),
                   child: isAddStory
-                      ? const Icon(Icons.add, color: Colors.white)
-                      : const Icon(Icons.person, color: Colors.white54),
+                      ? const Icon(LucideIcons.plus, color: Colors.white)
+                      : const Icon(LucideIcons.user, color: Colors.white54),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -477,13 +478,15 @@ class _InteractionPanel extends StatelessWidget {
         children: [
           _buildProfileAvatar(context),
           const SizedBox(height: 18),
-          _buildInteractionButton(Icons.favorite, '8,497'),
+          _buildInteractionButton(LucideIcons.heart, '8,497'),
           const SizedBox(height: 16),
-          _buildInteractionButton(Icons.sms_outlined, '77'), // Premium outline SMS bubble
+          _buildInteractionButton(LucideIcons.messageCircle, '77'), // Premium outline SMS bubble
           const SizedBox(height: 16),
-          _buildInteractionButton(Icons.bookmark, '336'),
+          _buildInteractionButton(LucideIcons.repeat, '12'), // Repost
           const SizedBox(height: 16),
-          _buildInteractionButton(Icons.reply, 'Share', isMirrored: true),
+          _buildInteractionButton(LucideIcons.bookmark, '336'),
+          const SizedBox(height: 16),
+          _buildInteractionButton(LucideIcons.send, 'Share'),
         ],
       ),
     );
@@ -504,7 +507,7 @@ class _InteractionPanel extends StatelessWidget {
               border: Border.all(color: Colors.white, width: 2),
               color: Colors.white10,
             ),
-            child: const Icon(Icons.person, color: Colors.white54, size: 30),
+            child: const Icon(LucideIcons.user, color: Colors.white54, size: 30),
           ),
           Positioned(
             bottom: 0,
@@ -521,7 +524,7 @@ class _InteractionPanel extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: Color(0xFF0088FF), // Premium blue accent
                 ),
-                child: const Icon(Icons.add, color: Colors.white, size: 16),
+                child: const Icon(LucideIcons.plus, color: Colors.white, size: 16),
               ),
             ),
           ),
