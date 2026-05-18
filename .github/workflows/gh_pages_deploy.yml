@@ -31,7 +31,7 @@ jobs:
 
       - name: Build Web
         # Standard production build for web (obfuscate not supported on web) with no icon tree shaking for stable compilation
-        run: flutter build web --release --base-href "/cold/" --web-renderer canvaskit --no-tree-shake-icons
+        run: flutter build web --release --base-href "/cold/" --web-renderer canvaskit --no-tree-shake-icons --verbose
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
