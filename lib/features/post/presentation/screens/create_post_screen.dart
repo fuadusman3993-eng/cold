@@ -6,8 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
-import 'package:cold/core/providers/feed_provider.dart';
 import 'package:cold/core/utils/video_player_helper.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 enum PostStep { select, preview }
 
@@ -28,6 +28,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   bool _isPlaying = true;
   bool _isProcessingMedia = false; // Transition Lock to prevent duplicate launches
   PostStep _currentStep = PostStep.select; // Cleared lifecycle steps
+
+  // Camera creation UI state variables
+  bool _isFlashOn = false;
+  String _selectedSpeed = '1x'; // '0.5x', '1x', '2x', '3x'
+  bool _isTimerActive = false;
+  int _selectedDuration = 15; // 15, 30, 60
+  bool _isFrontCamera = false;
+  String _selectedMode = 'REEL'; // 'REEL', 'TEMPLATES'
+  bool _isRecordingSimulated = false;
 
   static const Color _electricBlue = Color(0xFF0088FF);
 
@@ -154,92 +163,180 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(
-        // 2. Lifecycle step-based UI conditional rendering
-        child: _currentStep == PostStep.select ? _buildSelectionView() : _buildPreviewView(),
-      ),
+      body: _currentStep == PostStep.select 
+          ? _buildSelectionView() 
+          : SafeArea(child: _buildPreviewView()),
     );
   }
 
-  // Pure black selection view
+  // Premium immersive Reels-style camera selection view
   Widget _buildSelectionView() {
-    return Column(
+    return Stack(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                onPressed: () => Navigator.pop(context),
-              ),
-              const SizedBox(width: 16),
-              Text(
-                'Create Post',
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
+        // 1. Simulated Camera Viewfinder Layer
+        Positioned.fill(
+          child: Container(
+            color: const Color(0xFF000000), // Pure black base
+            child: Stack(
+              children: [
+                // Premium HSL gradient overlay mimicking a dark live viewfinder
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        colors: [
+                          const Color(0xFF151820).withOpacity(0.4),
+                          const Color(0xFF08090C),
+                        ],
+                        radius: 1.2,
+                        center: Alignment.center,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                // Camera Grid Lines (Rule of Thirds)
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _CameraGridPainter(),
+                  ),
+                ),
+                // Camera Corner Framing Brackets
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _CameraCornerBracketsPainter(),
+                  ),
+                ),
+                // Pulsing REC indicator + mode status at top center
+                Positioned(
+                  top: 54, // Adjusted below status bar
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _RecordingStatusDot(),
+                        const SizedBox(width: 8),
+                        Text(
+                          _selectedMode,
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Tech Specs Metadata (ISO, FPS)
+                Positioned(
+                  bottom: 180,
+                  left: 24,
+                  child: Text(
+                    'ISO 250   1080P   60FPS',
+                    style: GoogleFonts.inter(
+                      color: Colors.white30,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+
+        // 2. Top Control Bar (Left close 'X', Right horizontal tools row)
+        Positioned(
+          top: 48, // Balanced with the REC indicator
+          left: 16,
+          right: 16,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // Left: Close Action
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black38,
+                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 22),
+                ),
+              ),
+              // Right: Horizontal sleek thin-stroke tools row
               Container(
-                width: 100,
-                height: 100,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.03),
-                  border: Border.all(color: Colors.white10, width: 2),
+                  color: Colors.black38,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(
-                  Icons.videocam_outlined,
-                  color: Colors.white54,
-                  size: 48,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Share a video on Cold',
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 22,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Capture live or upload from your library',
-                style: GoogleFonts.inter(
-                  color: Colors.white38,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 48),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                child: Column(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildSelectionCard(
-                      icon: Icons.camera_enhance_outlined,
-                      title: 'Record Live Video',
-                      subtitle: 'Use your front or back camera',
-                      onTap: () => _pickVideo(ImageSource.camera),
+                    // Flash Toggle
+                    _buildTopToolItem(
+                      icon: _isFlashOn ? LucideIcons.zap : LucideIcons.zapOff,
+                      color: _isFlashOn ? const Color(0xFFFFCC00) : Colors.white,
+                      onTap: () {
+                        setState(() {
+                          _isFlashOn = !_isFlashOn;
+                        });
+                      },
                     ),
-                    const SizedBox(height: 16),
-                    _buildSelectionCard(
-                      icon: Icons.video_library_outlined,
-                      title: 'Select from Gallery',
-                      subtitle: 'Choose a saved video from your device',
-                      onTap: () => _pickVideo(ImageSource.gallery),
+                    const SizedBox(width: 16),
+                    // Speed multiplier
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (_selectedSpeed == '1x') _selectedSpeed = '2x';
+                          else if (_selectedSpeed == '2x') _selectedSpeed = '3x';
+                          else if (_selectedSpeed == '3x') _selectedSpeed = '0.5x';
+                          else _selectedSpeed = '1x';
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white60, width: 1.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          _selectedSpeed,
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Timer
+                    _buildTopToolItem(
+                      icon: LucideIcons.timer,
+                      color: _isTimerActive ? const Color(0xFF0088FF) : Colors.white,
+                      onTap: () {
+                        setState(() {
+                          _isTimerActive = !_isTimerActive;
+                        });
+                      },
+                    ),
+                    const SizedBox(width: 16),
+                    // Settings Gear
+                    _buildTopToolItem(
+                      icon: LucideIcons.settings,
+                      color: Colors.white,
+                      onTap: () {},
                     ),
                   ],
                 ),
@@ -247,7 +344,244 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ],
           ),
         ),
+
+        // 3. Left Aligned Vertical Tool Column
+        Positioned(
+          left: 16,
+          top: 110,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildLeftColumnToolItem(
+                icon: LucideIcons.music,
+                label: 'Audio',
+                onTap: () {},
+              ),
+              _buildLeftColumnToolItem(
+                icon: LucideIcons.sparkles,
+                label: 'Effects',
+                onTap: () {},
+              ),
+              _buildLeftColumnToolItem(
+                icon: LucideIcons.smile,
+                label: 'Screen',
+                onTap: () {},
+              ),
+              _buildLeftColumnToolItem(
+                icon: LucideIcons.wand,
+                label: 'Retouch',
+                onTap: () {},
+              ),
+              // Duration Dotted Selector
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    if (_selectedDuration == 15) _selectedDuration = 30;
+                    else if (_selectedDuration == 30) _selectedDuration = 60;
+                    else _selectedDuration = 15;
+                  });
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white70,
+                          width: 1.5,
+                        ),
+                        color: Colors.black45,
+                      ),
+                      child: Center(
+                        child: Text(
+                          _selectedDuration.toString(),
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Length',
+                      style: GoogleFonts.inter(
+                        color: Colors.white60,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // 4. Bottom Control Dock
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            padding: const EdgeInsets.only(bottom: 34, top: 20),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [
+                  Colors.black87,
+                  Colors.transparent,
+                ],
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Shutter, Picker, and Flip Row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Gallery Picker (Left of Shutter)
+                      GestureDetector(
+                        onTap: () => _pickVideo(ImageSource.gallery),
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white38, width: 1.5),
+                            color: Colors.white05,
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: const Center(
+                            child: Icon(LucideIcons.image, color: Colors.white70, size: 18),
+                          ),
+                        ),
+                      ),
+                      // Pristine White Shutter Recording Button (Center)
+                      GestureDetector(
+                        onTap: () => _pickVideo(ImageSource.camera),
+                        child: Container(
+                          width: 76,
+                          height: 76,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 4),
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Camera Flip Toggle (Right of Shutter)
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isFrontCamera = !_isFrontCamera;
+                          });
+                        },
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black38,
+                          ),
+                          child: const Center(
+                            child: Icon(LucideIcons.switchCamera, color: Colors.white, size: 20),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Mode Horizontal Slider properly padded
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildModeText('REEL'),
+                    const SizedBox(width: 32),
+                    _buildModeText('TEMPLATES'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _buildTopToolItem({required IconData icon, required Color color, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Icon(icon, color: color, size: 18),
+    );
+  }
+
+  Widget _buildLeftColumnToolItem({required IconData icon, required String label, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.black45,
+            ),
+            child: Center(
+              child: Icon(icon, color: Colors.white, size: 16),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              color: Colors.white70,
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 18),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeText(String mode) {
+    final bool isActive = _selectedMode == mode;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedMode = mode;
+        });
+      },
+      child: Text(
+        mode,
+        style: GoogleFonts.inter(
+          color: isActive ? Colors.white : Colors.white38,
+          fontWeight: FontWeight.w800,
+          fontSize: 12,
+          letterSpacing: 1.0,
+        ),
+      ),
     );
   }
 
@@ -410,54 +744,114 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       ],
     );
   }
+}
 
-  Widget _buildSelectionCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+// ==================== Premium Viewfinder Custom Widgets & Painters ====================
+
+class _RecordingStatusDot extends StatefulWidget {
+  @override
+  State<_RecordingStatusDot> createState() => _RecordingStatusDotState();
+}
+
+class _RecordingStatusDotState extends State<_RecordingStatusDot> with SingleTickerProviderStateMixin {
+  late AnimationController _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _anim = AnimationController(vsync: this, duration: const Duration(seconds: 1))..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _anim,
       child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.03),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white10),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white70, size: 32),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.inter(
-                      color: Colors.white38,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.white24),
-          ],
+        width: 8,
+        height: 8,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Color(0xFFFF2D55), // Pulsing red dot
         ),
       ),
     );
   }
+}
+
+class _CameraGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.06)
+      ..strokeWidth = 1.0;
+
+    // Draw vertical lines
+    canvas.drawLine(Offset(size.width / 3, 0), Offset(size.width / 3, size.height), paint);
+    canvas.drawLine(Offset(size.width * 2 / 3, 0), Offset(size.width * 2 / 3, size.height), paint);
+
+    // Draw horizontal lines
+    canvas.drawLine(Offset(0, size.height / 3), Offset(size.width, size.height / 3), paint);
+    canvas.drawLine(Offset(0, size.height * 2 / 3), Offset(size.width, size.height * 2 / 3), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _CameraCornerBracketsPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white24
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke;
+
+    const length = 20.0;
+    const margin = 24.0;
+
+    // Top Left
+    canvas.drawPath(
+      Path()
+        ..moveTo(margin, margin + length + 20.0) // Pushed slightly down for aesthetics
+        ..lineTo(margin, margin + 20.0)
+        ..lineTo(margin + length, margin + 20.0),
+      paint,
+    );
+
+    // Top Right
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width - margin - length, margin + 20.0)
+        ..lineTo(size.width - margin, margin + 20.0)
+        ..lineTo(size.width - margin, margin + length + 20.0),
+      paint,
+    );
+
+    // Bottom Left
+    canvas.drawPath(
+      Path()
+        ..moveTo(margin, size.height - margin - length - 60.0) // Kept above bottom controls
+        ..lineTo(margin, size.height - margin - 60.0)
+        ..lineTo(margin + length, size.height - margin - 60.0),
+      paint,
+    );
+
+    // Bottom Right
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width - margin - length, size.height - margin - 60.0)
+        ..lineTo(size.width - margin, size.height - margin - 60.0)
+        ..lineTo(size.width - margin, size.height - margin - length - 60.0),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
