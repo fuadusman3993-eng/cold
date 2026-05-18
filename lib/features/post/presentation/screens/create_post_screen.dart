@@ -458,7 +458,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: Colors.white38, width: 1.5),
-                            color: Colors.white05,
+                            color: Colors.white.withOpacity(0.05),
                           ),
                           clipBehavior: Clip.antiAlias,
                           child: const Center(
