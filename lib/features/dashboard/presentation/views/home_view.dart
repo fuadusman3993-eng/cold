@@ -394,7 +394,7 @@ class _FeedPostItemState extends State<FeedPostItem> {
         ),
 
         // Floating Interaction Panel (TikTok Style)
-        const _InteractionPanel(),
+        _InteractionPanel(video: widget.video),
       ],
     );
   }
@@ -466,7 +466,8 @@ class _AnimatedScaleButtonState extends State<AnimatedScaleButton> with SingleTi
 }
 
 class _InteractionPanel extends StatelessWidget {
-  const _InteractionPanel();
+  final VideoModel video;
+  const _InteractionPanel({required this.video});
 
   void _showShareMenu(BuildContext context) {
     showModalBottomSheet(
@@ -624,6 +625,8 @@ class _InteractionPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final feedProvider = Provider.of<FeedProvider>(context, listen: false);
+
     return Positioned(
       bottom: 90, // Positioned optimally above the bottom nav bar
       right: 16,
@@ -632,14 +635,17 @@ class _InteractionPanel extends StatelessWidget {
         children: [
           // Interactions (Like, Comment, Bookmark, Share)
           _buildInteractionButton(
-            LucideIcons.heart, 
-            '8,497', 
-            onTap: () {},
+            video.isLiked ? Icons.favorite : LucideIcons.heart, 
+            video.likesCount.toString(), 
+            color: video.isLiked ? const Color(0xFFFF2D55) : Colors.white,
+            onTap: () {
+              feedProvider.toggleLike(video.id);
+            },
           ),
           const SizedBox(height: 20),
           _buildInteractionButton(
             LucideIcons.messageCircle, 
-            '77', 
+            video.commentsCount.toString(), 
             onTap: () {},
           ),
           const SizedBox(height: 20),
@@ -704,10 +710,10 @@ class _InteractionPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildInteractionButton(IconData icon, String label, {required VoidCallback onTap, bool isMirrored = false}) {
+  Widget _buildInteractionButton(IconData icon, String label, {required VoidCallback onTap, Color color = Colors.white, bool isMirrored = false}) {
     Widget iconWidget = Icon(
       icon,
-      color: Colors.white,
+      color: color,
       size: 28, // Sized down to 28 for ultra-minimalist, thin-stroke feel
       shadows: [
         Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 6, offset: const Offset(0, 1)),
