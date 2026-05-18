@@ -122,6 +122,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             : _descController.text.trim(),
         username: 'you',
         url: _videoFile!.path,
+        likesCount: 0,
+        commentsCount: 0,
         colors: const [Color(0xFFFF416C), Color(0xFFFF4B2B)],
       );
 
