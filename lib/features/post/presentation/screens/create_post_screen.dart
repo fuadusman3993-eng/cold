@@ -9,6 +9,7 @@ import 'package:cold/core/providers/feed_provider.dart';
 import 'package:cold/core/utils/video_player_helper.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:camera/camera.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 enum PostStep { select, preview }
 
@@ -35,6 +36,23 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   List<CameraDescription> _cameras = [];
   bool _isRecording = false;
 
+  // Camera permissions state (Ask Only Once)
+  static bool _permissionsRequested = false;
+  static bool _hasCameraPermission = false;
+
+  // Camera zoom variables
+  double _currentZoomLevel = 1.0;
+  double _baseZoomLevel = 1.0;
+  double _minZoomLevel = 1.0;
+  double _maxZoomLevel = 1.0;
+
+  // Recording progress animation variables
+  double _progressValue = 0.0;
+  Timer? _progressTimer;
+
+  // Camera Grid Line Toggle
+  bool _showGrid = true;
+
   // Camera creation UI state variables
   bool _isFlashOn = false;
   String _selectedSpeed = '1x'; // '0.5x', '1x', '2x', '3x'
@@ -49,10 +67,53 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeCamera();
+    _checkAndRequestPermissions();
+  }
+
+  Future<void> _checkAndRequestPermissions() async {
+    try {
+      final cameraStatus = await Permission.camera.status;
+      final microphoneStatus = await Permission.microphone.status;
+
+      if (cameraStatus.isGranted && microphoneStatus.isGranted) {
+        _hasCameraPermission = true;
+        _initializeCamera();
+        return;
+      }
+
+      if (_permissionsRequested) {
+        debugPrint("Permissions previously requested. Skipping prompt.");
+        return;
+      }
+
+      _permissionsRequested = true;
+
+      final statuses = await [
+        Permission.camera,
+        Permission.microphone,
+      ].request();
+
+      if (statuses[Permission.camera]?.isGranted == true &&
+          statuses[Permission.microphone]?.isGranted == true) {
+        _hasCameraPermission = true;
+        _initializeCamera();
+      } else {
+        _hasCameraPermission = false;
+        debugPrint("Permissions denied by user.");
+      }
+    } catch (e) {
+      debugPrint("Error handling permissions: $e");
+      // Gracefully fall back
+      _initializeCamera();
+    }
   }
 
   Future<void> _initializeCamera() async {
+    if (!_hasCameraPermission) {
+      debugPrint("Skipping camera initialization: Permission not granted.");
+      return;
+    }
+
     try {
       _cameras = await availableCameras();
       if (_cameras.isNotEmpty) {
@@ -75,6 +136,19 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         );
 
         await _cameraController!.initialize();
+
+        // Get available zoom levels
+        try {
+          _minZoomLevel = await _cameraController!.getMinZoomLevel();
+          _maxZoomLevel = await _cameraController!.getMaxZoomLevel();
+          _currentZoomLevel = _minZoomLevel;
+        } catch (zoomError) {
+          debugPrint("Failed to get zoom levels: $zoomError");
+          _minZoomLevel = 1.0;
+          _maxZoomLevel = 1.0;
+          _currentZoomLevel = 1.0;
+        }
+
         if (mounted) {
           setState(() {});
         }
@@ -86,6 +160,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   @override
   void dispose() {
+    _progressTimer?.cancel();
     _cameraController?.dispose();
     _videoController?.dispose();
     _descController.dispose();
@@ -131,10 +206,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
 
     if (_isRecording) {
+      _progressTimer?.cancel();
+      _progressTimer = null;
       try {
         final XFile file = await _cameraController!.stopVideoRecording();
         setState(() {
           _isRecording = false;
+          _progressValue = 0.0;
           _videoFile = file;
           _isPlaying = true;
           _currentStep = PostStep.preview;
@@ -146,6 +224,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         debugPrint('Error stopping video recording: $e');
         setState(() {
           _isRecording = false;
+          _progressValue = 0.0;
         });
       }
     } else {
@@ -153,6 +232,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         await _cameraController!.startVideoRecording();
         setState(() {
           _isRecording = true;
+          _progressValue = 0.0;
+        });
+
+        final maxDurationMs = _selectedDuration * 1000;
+        int elapsedMs = 0;
+        _progressTimer?.cancel();
+        _progressTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+          elapsedMs += 50;
+          if (mounted) {
+            setState(() {
+              _progressValue = elapsedMs / maxDurationMs;
+            });
+          }
+          if (elapsedMs >= maxDurationMs) {
+            timer.cancel();
+            if (_isRecording) {
+              _toggleRecording();
+            }
+          }
         });
       } catch (e) {
         debugPrint('Error starting video recording: $e');
@@ -259,7 +357,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   void _clearSelection() {
+    _progressTimer?.cancel();
+    _progressTimer = null;
     setState(() {
+      _progressValue = 0.0;
       _videoController?.dispose();
       _videoController = null;
       _videoFile = null;
@@ -291,18 +392,36 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               children: [
                 if (_cameraController != null && _cameraController!.value.isInitialized)
                   Positioned.fill(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final size = constraints.biggest;
-                        var scale = size.aspectRatio * _cameraController!.value.aspectRatio;
-                        if (scale < 1) scale = 1 / scale;
-                        return Transform.scale(
-                          scale: scale,
-                          child: Center(
-                            child: CameraPreview(_cameraController!),
-                          ),
-                        );
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onScaleStart: (details) {
+                        _baseZoomLevel = _currentZoomLevel;
                       },
+                      onScaleUpdate: (details) async {
+                        if (_cameraController == null || !_cameraController!.value.isInitialized) return;
+                        
+                        double newZoom = _baseZoomLevel * details.scale;
+                        newZoom = newZoom.clamp(_minZoomLevel, _maxZoomLevel);
+                        
+                        if (newZoom != _currentZoomLevel) {
+                          _currentZoomLevel = newZoom;
+                          await _cameraController!.setZoomLevel(newZoom);
+                          setState(() {});
+                        }
+                      },
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final size = constraints.biggest;
+                          var scale = size.aspectRatio * _cameraController!.value.aspectRatio;
+                          if (scale < 1) scale = 1 / scale;
+                          return Transform.scale(
+                            scale: scale,
+                            child: Center(
+                              child: CameraPreview(_cameraController!),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   )
                 else
@@ -322,11 +441,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     ),
                   ),
                 // Camera Grid Lines (Rule of Thirds)
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: _CameraGridPainter(),
+                if (_showGrid)
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _CameraGridPainter(),
+                    ),
                   ),
-                ),
                 // Camera Corner Framing Brackets
                 Positioned.fill(
                   child: CustomPaint(
@@ -378,6 +498,69 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     ),
                   ),
                 ),
+                // Zoom Slider
+                if (_cameraController != null && _cameraController!.value.isInitialized && _maxZoomLevel > _minZoomLevel)
+                  Positioned(
+                    bottom: 120,
+                    left: 48,
+                    right: 48,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${_minZoomLevel.toStringAsFixed(1)}x',
+                              style: GoogleFonts.inter(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.w600),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.white10),
+                              ),
+                              child: Text(
+                                '${_currentZoomLevel.toStringAsFixed(1)}x',
+                                style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                            Text(
+                              '${_maxZoomLevel.toStringAsFixed(1)}x',
+                              style: GoogleFonts.inter(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: Colors.white,
+                            inactiveTrackColor: Colors.white24,
+                            thumbColor: Colors.white,
+                            trackHeight: 2.0,
+                            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
+                            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12.0),
+                          ),
+                          child: Slider(
+                            value: _currentZoomLevel,
+                            min: _minZoomLevel,
+                            max: _maxZoomLevel,
+                            onChanged: (value) async {
+                              setState(() {
+                                _currentZoomLevel = value;
+                              });
+                              try {
+                                await _cameraController!.setZoomLevel(value);
+                              } catch (e) {
+                                debugPrint("Error setting zoom level: $e");
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 // Tech Specs Metadata (ISO, FPS)
                 Positioned(
                   bottom: 180,
@@ -513,6 +696,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 label: 'Retouch',
                 onTap: () {},
               ),
+              _buildLeftColumnToolItem(
+                icon: LucideIcons.grid,
+                label: 'Grid',
+                color: _showGrid ? const Color(0xFF0088FF) : Colors.white,
+                onTap: () {
+                  setState(() {
+                    _showGrid = !_showGrid;
+                  });
+                },
+              ),
               // Duration Dotted Selector
               GestureDetector(
                 onTap: () {
@@ -608,25 +801,41 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         ),
                       ),
                       // Pristine White Shutter Recording Button (Center)
-                      GestureDetector(
-                        onTap: _toggleRecording,
-                        child: Container(
-                          width: 76,
-                          height: 76,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 4),
-                          ),
-                          padding: const EdgeInsets.all(4),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            decoration: BoxDecoration(
-                              shape: _isRecording ? BoxShape.rectangle : BoxShape.circle,
-                              color: _isRecording ? Colors.red : Colors.white,
-                              borderRadius: _isRecording ? BorderRadius.circular(8) : null,
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          if (_isRecording)
+                            SizedBox(
+                              width: 88,
+                              height: 88,
+                              child: CircularProgressIndicator(
+                                value: _progressValue,
+                                strokeWidth: 4,
+                                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF2D55)),
+                                backgroundColor: Colors.white24,
+                              ),
+                            ),
+                          GestureDetector(
+                            onTap: _toggleRecording,
+                            child: Container(
+                              width: 76,
+                              height: 76,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 4),
+                              ),
+                              padding: const EdgeInsets.all(4),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                decoration: BoxDecoration(
+                                  shape: _isRecording ? BoxShape.rectangle : BoxShape.circle,
+                                  color: _isRecording ? Colors.red : Colors.white,
+                                  borderRadius: _isRecording ? BorderRadius.circular(8) : null,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
                       // Camera Flip Toggle (Right of Shutter)
                       GestureDetector(
@@ -676,7 +885,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  Widget _buildLeftColumnToolItem({required IconData icon, required String label, required VoidCallback onTap}) {
+  Widget _buildLeftColumnToolItem({required IconData icon, required String label, required VoidCallback onTap, Color color = Colors.white}) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -690,7 +899,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               color: Colors.black45,
             ),
             child: Center(
-              child: Icon(icon, color: Colors.white, size: 16),
+              child: Icon(icon, color: color, size: 16),
             ),
           ),
           const SizedBox(height: 4),
@@ -931,7 +1140,7 @@ class _CameraGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.06)
+      ..color = Colors.white.withOpacity(0.2)
       ..strokeWidth = 1.0;
 
     // Draw vertical lines
