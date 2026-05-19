@@ -216,6 +216,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       }
 
       if (file != null) {
+        final pickedFile = file;
         // Trigger smooth fade-out animation first
         setState(() {
           _transitionOverlayOpacity = 1.0;
@@ -224,8 +225,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         await Future.delayed(const Duration(milliseconds: 250));
 
         setState(() {
-          _videoFile = file;
-          _galleryThumbnailPath = file.path;
+          _videoFile = pickedFile;
+          _galleryThumbnailPath = pickedFile.path;
           _isPlaying = true;
           _currentStep = PostStep.preview; // Set step to preview UI
         });
