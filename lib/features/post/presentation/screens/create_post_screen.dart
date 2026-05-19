@@ -182,10 +182,39 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     });
 
     try {
-      final XFile? file = await _picker.pickVideo(
-        source: source,
-        maxDuration: const Duration(minutes: 5),
-      );
+      XFile? file;
+      if (source == ImageSource.gallery) {
+        // Use pickMedia to invoke Android/iOS native visual gallery/photo picker instead of file explorer
+        file = await _picker.pickMedia();
+        if (file != null) {
+          final isVideo = file.path.toLowerCase().contains('.mp4') ||
+              file.path.toLowerCase().contains('.mov') ||
+              file.path.toLowerCase().contains('.avi') ||
+              file.path.toLowerCase().contains('.mkv') ||
+              file.path.toLowerCase().contains('.webm') ||
+              (file.mimeType != null && file.mimeType!.startsWith('video/'));
+          if (!isVideo) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.redAccent,
+                  content: Text(
+                    'Please select a video file.',
+                    style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              );
+            }
+            file = null;
+          }
+        }
+      } else {
+        file = await _picker.pickVideo(
+          source: source,
+          maxDuration: const Duration(minutes: 5),
+        );
+      }
+
       if (file != null) {
         // Trigger smooth fade-out animation first
         setState(() {
