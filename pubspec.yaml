@@ -20,6 +20,7 @@ dependencies:
   url_launcher: ^6.2.6
   video_player: ^2.8.6
   image_picker: ^1.0.7
+  camera: ^0.10.5+9
 
 dev_dependencies:
   flutter_test:

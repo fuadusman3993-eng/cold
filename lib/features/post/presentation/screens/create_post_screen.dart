@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:cold/core/providers/feed_provider.dart';
 import 'package:cold/core/utils/video_player_helper.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:camera/camera.dart';
 
 enum PostStep { select, preview }
 
@@ -29,6 +30,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   bool _isProcessingMedia = false; // Transition Lock to prevent duplicate launches
   PostStep _currentStep = PostStep.select; // Cleared lifecycle steps
 
+  // Camera package variables
+  CameraController? _cameraController;
+  List<CameraDescription> _cameras = [];
+  bool _isRecording = false;
+
   // Camera creation UI state variables
   bool _isFlashOn = false;
   String _selectedSpeed = '1x'; // '0.5x', '1x', '2x', '3x'
@@ -41,7 +47,46 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   static const Color _electricBlue = Color(0xFF0088FF);
 
   @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }
+
+  Future<void> _initializeCamera() async {
+    try {
+      _cameras = await availableCameras();
+      if (_cameras.isNotEmpty) {
+        if (_cameraController != null) {
+          await _cameraController!.dispose();
+          _cameraController = null;
+        }
+
+        final selectedCamera = _cameras.firstWhere(
+          (camera) => _isFrontCamera 
+              ? camera.lensDirection == CameraLensDirection.front 
+              : camera.lensDirection == CameraLensDirection.back,
+          orElse: () => _cameras.first,
+        );
+
+        _cameraController = CameraController(
+          selectedCamera,
+          ResolutionPreset.high,
+          enableAudio: true,
+        );
+
+        await _cameraController!.initialize();
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    } catch (e) {
+      debugPrint('Error initializing camera: $e');
+    }
+  }
+
+  @override
   void dispose() {
+    _cameraController?.dispose();
     _videoController?.dispose();
     _descController.dispose();
     super.dispose();
@@ -76,6 +121,67 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           _isProcessingMedia = false;
         });
       }
+    }
+  }
+
+  Future<void> _toggleRecording() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      _pickVideo(ImageSource.camera);
+      return;
+    }
+
+    if (_isRecording) {
+      try {
+        final XFile file = await _cameraController!.stopVideoRecording();
+        setState(() {
+          _isRecording = false;
+          _videoFile = file;
+          _isPlaying = true;
+          _currentStep = PostStep.preview;
+        });
+        await _cameraController?.dispose();
+        _cameraController = null;
+        await _initializeVideoPlayer();
+      } catch (e) {
+        debugPrint('Error stopping video recording: $e');
+        setState(() {
+          _isRecording = false;
+        });
+      }
+    } else {
+      try {
+        await _cameraController!.startVideoRecording();
+        setState(() {
+          _isRecording = true;
+        });
+      } catch (e) {
+        debugPrint('Error starting video recording: $e');
+      }
+    }
+  }
+
+  Future<void> _toggleFlash() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      setState(() {
+        _isFlashOn = !_isFlashOn;
+      });
+      return;
+    }
+
+    try {
+      if (_isFlashOn) {
+        await _cameraController!.setFlashMode(FlashMode.off);
+        setState(() {
+          _isFlashOn = false;
+        });
+      } else {
+        await _cameraController!.setFlashMode(FlashMode.torch);
+        setState(() {
+          _isFlashOn = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error toggling flash: $e');
     }
   }
 
@@ -160,6 +266,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       _currentStep = PostStep.select;
       _descController.clear();
     });
+    _initializeCamera();
   }
 
   @override
@@ -182,21 +289,38 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             color: const Color(0xFF000000), // Pure black base
             child: Stack(
               children: [
-                // Premium HSL gradient overlay mimicking a dark live viewfinder
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        colors: [
-                          const Color(0xFF151820).withOpacity(0.4),
-                          const Color(0xFF08090C),
-                        ],
-                        radius: 1.2,
-                        center: Alignment.center,
+                if (_cameraController != null && _cameraController!.value.isInitialized)
+                  Positioned.fill(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final size = constraints.biggest;
+                        var scale = size.aspectRatio * _cameraController!.value.aspectRatio;
+                        if (scale < 1) scale = 1 / scale;
+                        return Transform.scale(
+                          scale: scale,
+                          child: Center(
+                            child: CameraPreview(_cameraController!),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                else
+                  // Premium HSL gradient overlay mimicking a dark live viewfinder
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          colors: [
+                            const Color(0xFF151820).withOpacity(0.4),
+                            const Color(0xFF08090C),
+                          ],
+                          radius: 1.2,
+                          center: Alignment.center,
+                        ),
                       ),
                     ),
                   ),
-                ),
                 // Camera Grid Lines (Rule of Thirds)
                 Positioned.fill(
                   child: CustomPaint(
@@ -215,21 +339,42 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   left: 0,
                   right: 0,
                   child: Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _RecordingStatusDot(),
-                        const SizedBox(width: 8),
-                        Text(
-                          _selectedMode,
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.5,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_isRecording) ...[
+                            _RecordingStatusDot(),
+                            const SizedBox(width: 8),
+                            Text(
+                              'REC',
+                              style: GoogleFonts.inter(
+                                color: Colors.red,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('|', style: TextStyle(color: Colors.white24)),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(
+                            _selectedMode,
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.5,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -286,11 +431,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     _buildTopToolItem(
                       icon: _isFlashOn ? LucideIcons.zap : LucideIcons.zapOff,
                       color: _isFlashOn ? const Color(0xFFFFCC00) : Colors.white,
-                      onTap: () {
-                        setState(() {
-                          _isFlashOn = !_isFlashOn;
-                        });
-                      },
+                      onTap: _toggleFlash,
                     ),
                     const SizedBox(width: 16),
                     // Speed multiplier
@@ -468,7 +609,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       ),
                       // Pristine White Shutter Recording Button (Center)
                       GestureDetector(
-                        onTap: () => _pickVideo(ImageSource.camera),
+                        onTap: _toggleRecording,
                         child: Container(
                           width: 76,
                           height: 76,
@@ -477,10 +618,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                             border: Border.all(color: Colors.white, width: 4),
                           ),
                           padding: const EdgeInsets.all(4),
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            decoration: BoxDecoration(
+                              shape: _isRecording ? BoxShape.rectangle : BoxShape.circle,
+                              color: _isRecording ? Colors.red : Colors.white,
+                              borderRadius: _isRecording ? BorderRadius.circular(8) : null,
                             ),
                           ),
                         ),
@@ -491,6 +634,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           setState(() {
                             _isFrontCamera = !_isFrontCamera;
                           });
+                          _initializeCamera();
                         },
                         child: Container(
                           width: 44,
