@@ -53,6 +53,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   // Camera Grid Line Toggle
   bool _showGrid = true;
 
+  // Transition overlay opacity
+  double _transitionOverlayOpacity = 0.0;
+
+  // Optional gallery thumbnail path
+  String? _galleryThumbnailPath;
+
   // Camera creation UI state variables
   bool _isFlashOn = false;
   String _selectedSpeed = '1x'; // '0.5x', '1x', '2x', '3x'
@@ -181,11 +187,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         maxDuration: const Duration(minutes: 5),
       );
       if (file != null) {
+        // Trigger smooth fade-out animation first
+        setState(() {
+          _transitionOverlayOpacity = 1.0;
+        });
+        
+        await Future.delayed(const Duration(milliseconds: 250));
+
         setState(() {
           _videoFile = file;
+          _galleryThumbnailPath = file.path;
           _isPlaying = true;
           _currentStep = PostStep.preview; // Set step to preview UI
         });
+
+        if (_cameraController != null) {
+          await _cameraController!.dispose();
+          _cameraController = null;
+        }
+
         await _initializeVideoPlayer();
       }
     } catch (e) {
@@ -194,6 +214,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       if (mounted) {
         setState(() {
           _isProcessingMedia = false;
+          _transitionOverlayOpacity = 0.0; // Smoothly fade back in
         });
       }
     }
@@ -208,12 +229,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     if (_isRecording) {
       _progressTimer?.cancel();
       _progressTimer = null;
+      
+      // Trigger smooth fade-out animation first
+      setState(() {
+        _transitionOverlayOpacity = 1.0;
+      });
+      
+      await Future.delayed(const Duration(milliseconds: 250));
+
       try {
         final XFile file = await _cameraController!.stopVideoRecording();
         setState(() {
           _isRecording = false;
           _progressValue = 0.0;
           _videoFile = file;
+          _galleryThumbnailPath = file.path;
           _isPlaying = true;
           _currentStep = PostStep.preview;
         });
@@ -225,7 +255,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         setState(() {
           _isRecording = false;
           _progressValue = 0.0;
+          _currentStep = PostStep.select;
         });
+      } finally {
+        if (mounted) {
+          setState(() {
+            _transitionOverlayOpacity = 0.0; // Smoothly fade back in
+          });
+        }
       }
     } else {
       try {
@@ -374,9 +411,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: _currentStep == PostStep.select 
-          ? _buildSelectionView() 
-          : SafeArea(child: _buildPreviewView()),
+      body: Stack(
+        children: [
+          _currentStep == PostStep.select 
+              ? _buildSelectionView() 
+              : SafeArea(child: _buildPreviewView()),
+          
+          // Cinematic smooth transition fade-out overlay
+          IgnorePointer(
+            ignoring: _transitionOverlayOpacity == 0.0,
+            child: AnimatedOpacity(
+              opacity: _transitionOverlayOpacity,
+              duration: const Duration(milliseconds: 250),
+              child: Container(
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -795,9 +848,31 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                             color: Colors.white.withOpacity(0.05),
                           ),
                           clipBehavior: Clip.antiAlias,
-                          child: const Center(
-                            child: Icon(LucideIcons.image, color: Colors.white70, size: 18),
-                          ),
+                          child: _galleryThumbnailPath != null
+                              ? Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: Container(
+                                        decoration: const BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              Color(0xFF8E2DE2),
+                                              Color(0xFF4A00E0),
+                                            ],
+                                          ),
+                                        ),
+                                        child: const Center(
+                                          child: Icon(Icons.play_circle_outline, color: Colors.white, size: 16),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : const Center(
+                                  child: Icon(LucideIcons.image, color: Colors.white70, size: 18),
+                                ),
                         ),
                       ),
                       // Pristine White Shutter Recording Button (Center)
@@ -817,20 +892,23 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                             ),
                           GestureDetector(
                             onTap: _toggleRecording,
-                            child: Container(
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeInOut,
                               width: 76,
                               height: 76,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white, width: 4),
                               ),
-                              padding: const EdgeInsets.all(4),
+                              padding: EdgeInsets.all(_isRecording ? 18 : 4),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeInOut,
                                 decoration: BoxDecoration(
                                   shape: _isRecording ? BoxShape.rectangle : BoxShape.circle,
-                                  color: _isRecording ? Colors.red : Colors.white,
-                                  borderRadius: _isRecording ? BorderRadius.circular(8) : null,
+                                  color: _isRecording ? const Color(0xFFFF2D55) : Colors.white,
+                                  borderRadius: _isRecording ? BorderRadius.circular(6) : null,
                                 ),
                               ),
                             ),
