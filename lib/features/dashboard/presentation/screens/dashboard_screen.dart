@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cold/features/dashboard/presentation/views/home_view.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -48,62 +50,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
         },
         children: [
           const HomeView(),
-          _buildPlaceholderView("Video", Icons.play_circle_filled),
-          _buildPlaceholderView("AI Analysis", Icons.psychology),
-          _buildPlaceholderView("Messages", Icons.chat_bubble),
-          _buildPlaceholderView("Profile", Icons.person),
+          _buildPlaceholderView("Create", LucideIcons.plus),
+          _buildPlaceholderView("AI Analysis", LucideIcons.brain),
+          _buildPlaceholderView("Messages", LucideIcons.send),
+          _buildPlaceholderView("Profile", LucideIcons.user),
         ],
       ),
       bottomNavigationBar: isDesktop
           ? null
-          : Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.9),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-              child: BottomNavigationBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                selectedItemColor: Colors.white,
-                unselectedItemColor: Colors.white60,
-                type: BottomNavigationBarType.fixed,
-                currentIndex: _currentIndex,
-                onTap: _onItemTapped,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home_outlined),
-                  activeIcon: Icon(Icons.home_filled),
+          : BottomNavigationBar(
+              backgroundColor: Colors.black,
+              elevation: 0,
+              selectedItemColor: Colors.white,
+              unselectedItemColor: Colors.white60,
+              type: BottomNavigationBarType.fixed,
+              selectedLabelStyle: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600),
+              unselectedLabelStyle: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500),
+              currentIndex: _currentIndex,
+              onTap: _onItemTapped,
+              items: [
+                const BottomNavigationBarItem(
+                  icon: Icon(LucideIcons.triangle),
+                  activeIcon: Icon(LucideIcons.triangle, shadows: [Shadow(color: Colors.white, blurRadius: 8)]),
                   label: 'Home',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.play_circle_outline),
-                  activeIcon: Icon(Icons.play_circle_filled),
-                  label: 'Video',
+                  icon: Text('C', style: GoogleFonts.pacifico(color: Colors.white60, fontSize: 20)),
+                  activeIcon: Text('C', style: GoogleFonts.pacifico(color: Colors.white, fontSize: 22, shadows: [const Shadow(color: Colors.white, blurRadius: 8)])),
+                  label: '',
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.psychology_outlined),
-                  activeIcon: Icon(Icons.psychology),
+                const BottomNavigationBarItem(
+                  icon: Icon(LucideIcons.brain),
+                  activeIcon: Icon(LucideIcons.brain, shadows: [Shadow(color: Colors.white, blurRadius: 8)]),
                   label: 'AI',
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.chat_bubble_outline),
-                  activeIcon: Icon(Icons.chat_bubble),
+                const BottomNavigationBarItem(
+                  icon: Icon(LucideIcons.send),
+                  activeIcon: Icon(LucideIcons.send, shadows: [Shadow(color: Colors.white, blurRadius: 8)]),
                   label: 'Message',
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person_outline),
-                  activeIcon: Icon(Icons.person),
+                const BottomNavigationBarItem(
+                  icon: Icon(LucideIcons.user),
+                  activeIcon: Icon(LucideIcons.user, shadows: [Shadow(color: Colors.white, blurRadius: 8)]),
                   label: 'Profile',
                 ),
               ],
             ),
-          ),
     );
 
     return Container(
