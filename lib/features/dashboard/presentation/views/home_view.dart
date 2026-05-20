@@ -11,58 +11,57 @@ import 'package:flutter/foundation.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cold/core/utils/video_player_helper.dart';
 
-Future<void> _handlePlusButtonTap(BuildContext context) async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  final bool hasGrantedPermissions = prefs.getBool('permissions_granted') ?? false;
+class ColdPermissionFlow {
+  static Future<void> checkAndNavigate(BuildContext context) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final bool hasGrantedPermissions = prefs.getBool('permissions_granted') ?? false;
 
-  if (hasGrantedPermissions) {
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pushNamed('/clean_camera_screen');
+    // 1. PRE-FLIGHT CHECK: Deeply check SharedPreferences first.
+    if (hasGrantedPermissions) {
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pushNamed('/clean_camera_screen');
+      }
+      return;
     }
-    return;
-  }
 
-  final cameraStatus = await Permission.camera.status;
-  final micStatus = await Permission.microphone.status;
-
-  if (cameraStatus.isGranted && micStatus.isGranted) {
-    await prefs.setBool('permissions_granted', true);
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pushNamed('/clean_camera_screen');
+    // WIPE NON-NATIVE LOGIC: On Web, the browser strictly handles permissions upon CameraController initialization.
+    // Calling permission_handler on Web returns denied and permanently blocks the user. We instantly redirect on Web.
+    if (kIsWeb) {
+      await prefs.setBool('permissions_granted', true);
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pushNamed('/clean_camera_screen');
+      }
+      return;
     }
-    return;
-  }
 
-  final Map<Permission, PermissionStatus> statuses = await [
-    Permission.camera,
-    Permission.microphone,
-  ].request();
+    // 2. NATIVE MOBILE LOGIC: Strictly use permission_handler for iOS/Android.
+    final cameraStatus = await Permission.camera.request();
+    final micStatus = await Permission.microphone.request();
 
-  final isCameraGranted = statuses[Permission.camera]?.isGranted == true;
-  final isMicGranted = statuses[Permission.microphone]?.isGranted == true;
-
-  if (isCameraGranted && isMicGranted) {
-    await prefs.setBool('permissions_granted', true);
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pushNamed('/clean_camera_screen');
-    }
-  } else {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: const Color(0xFF000000),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(bottom: 80.0, left: 16.0, right: 16.0),
-          content: Text(
-            'Camera and Microphone permissions are required to create posts.',
-            style: GoogleFonts.inter(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
+    // 3. INSTANT REDIRECT: The exact moment it evaluates to true, execute push routing automatically.
+    if (cameraStatus.isGranted) {
+      await prefs.setBool('permissions_granted', true);
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pushNamed('/clean_camera_screen');
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF000000),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(bottom: 80.0, left: 16.0, right: 16.0),
+            content: Text(
+              'Camera permissions are required to create posts.',
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
             ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 }
@@ -200,7 +199,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               AnimatedScaleButton(
-                                onTap: () => _handlePlusButtonTap(context),
+                                onTap: () => ColdPermissionFlow.checkAndNavigate(context),
                                 child: const Icon(LucideIcons.plus, color: Colors.white, size: 28),
                               ),
                               const SizedBox(width: 16),
@@ -736,7 +735,7 @@ class _InteractionPanel extends StatelessWidget {
           Positioned(
             bottom: 0,
             child: GestureDetector(
-              onTap: () => _handlePlusButtonTap(context),
+              onTap: () => ColdPermissionFlow.checkAndNavigate(context),
               child: Container(
                 padding: const EdgeInsets.all(2),
                 decoration: const BoxDecoration(
