@@ -97,7 +97,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     if (initialIndex == -1) initialIndex = 2;
     _modePageController = PageController(
       initialPage: initialIndex,
-      viewportFraction: 0.25,
+      viewportFraction: 0.12,
     );
     _checkAndRequestPermissions();
   }
@@ -1144,21 +1144,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       ],
                     ),
                   ),
-                // Tech Specs Metadata (ISO, FPS)
-                if (!isTextMode)
-                  Positioned(
-                    bottom: 214,
-                    left: 24,
-                    child: Text(
-                      'ISO 250   1080P   60FPS',
-                      style: GoogleFonts.inter(
-                        color: Colors.white30,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -1334,13 +1319,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         onTap: () {
                           _modePageController.animateToPage(
                             index,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
+                            duration: const Duration(milliseconds: 50),
+                            curve: Curves.linear,
                           );
                         },
                         child: Center(
                           child: AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 200),
+                            duration: const Duration(milliseconds: 50),
                             style: GoogleFonts.inter(
                               color: isActive ? Colors.white : Colors.white38,
                               fontWeight: FontWeight.w800,
