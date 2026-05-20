@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -320,8 +321,23 @@ class ImmersiveFeed extends StatefulWidget {
 }
 
 class _ImmersiveFeedState extends State<ImmersiveFeed> with AutomaticKeepAliveClientMixin {
+  late PageController _pageController;
+  int _focusedIndex = 0;
+
   @override
   bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -341,11 +357,38 @@ class _ImmersiveFeedState extends State<ImmersiveFeed> with AutomaticKeepAliveCl
     }
 
     return PageView.builder(
+      controller: _pageController,
       scrollDirection: Axis.vertical,
+      physics: const PageScrollPhysics(),
       itemCount: videos.length,
+      onPageChanged: (index) {
+        setState(() {
+          _focusedIndex = index;
+        });
+      },
       itemBuilder: (context, index) {
         final video = videos[index];
-        return FeedPostItem(video: video);
+        return FeedPostItem(
+          video: video,
+          isFocused: index == _focusedIndex,
+          onHide: () async {
+            if (index < videos.length - 1) {
+              await _pageController.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            } else if (index > 0) {
+              await _pageController.previousPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+            await Future.delayed(const Duration(milliseconds: 320));
+            if (mounted) {
+              Provider.of<FeedProvider>(context, listen: false).removeVideo(video.id);
+            }
+          },
+        );
       },
     );
   }
@@ -353,7 +396,15 @@ class _ImmersiveFeedState extends State<ImmersiveFeed> with AutomaticKeepAliveCl
 
 class FeedPostItem extends StatefulWidget {
   final VideoModel video;
-  const FeedPostItem({super.key, required this.video});
+  final bool isFocused;
+  final VoidCallback onHide;
+
+  const FeedPostItem({
+    super.key,
+    required this.video,
+    required this.isFocused,
+    required this.onHide,
+  });
 
   @override
   State<FeedPostItem> createState() => _FeedPostItemState();
@@ -361,24 +412,46 @@ class FeedPostItem extends StatefulWidget {
 
 class _FeedPostItemState extends State<FeedPostItem> {
   VideoPlayerController? _controller;
-  bool _isInitialized = false;
+  bool _showHeart = false;
+  Timer? _heartTimer;
 
   @override
   void initState() {
     super.initState();
-    _initializePlayer();
+    if (widget.isFocused) {
+      _initializePlayer();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant FeedPostItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isFocused != oldWidget.isFocused) {
+      if (widget.isFocused) {
+        _initializePlayer();
+      } else {
+        _disposePlayer();
+      }
+    }
   }
 
   Future<void> _initializePlayer() async {
     final url = widget.video.url;
-    if (url.isEmpty) return; // Keep rendering gradient placeholder
+    if (url.isEmpty) return; // Keep rendering black background
+
+    if (_controller != null) {
+      await _controller!.play();
+      return;
+    }
 
     _controller = createVideoPlayerController(url);
 
     try {
       await _controller!.initialize();
       await _controller!.setLooping(true);
-      await _controller!.play();
+      if (widget.isFocused) {
+        await _controller!.play();
+      }
       if (mounted) {
         setState(() {});
       }
@@ -387,33 +460,135 @@ class _FeedPostItemState extends State<FeedPostItem> {
     }
   }
 
+  void _disposePlayer() {
+    if (_controller != null) {
+      _controller!.dispose();
+      _controller = null;
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
   @override
   void dispose() {
-    _controller?.dispose();
+    _heartTimer?.cancel();
+    _disposePlayer();
     super.dispose();
+  }
+
+  void _togglePlayPause() {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    setState(() {
+      if (_controller!.value.isPlaying) {
+        _controller!.pause();
+      } else {
+        _controller!.play();
+      }
+    });
+  }
+
+  void _triggerDoubleTapLike() {
+    final feedProvider = Provider.of<FeedProvider>(context, listen: false);
+    if (!widget.video.isLiked) {
+      feedProvider.toggleLike(widget.video.id);
+    }
+    setState(() {
+      _showHeart = true;
+    });
+    _heartTimer?.cancel();
+    _heartTimer = Timer(const Duration(milliseconds: 800), () {
+      if (mounted) {
+        setState(() {
+          _showHeart = false;
+        });
+      }
+    });
+  }
+
+  void _showLongPressMenu() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF000000), // Pure Black (#000000)
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (context) {
+        return SafeArea(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Clean drag handle
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Hide / Not Interested Option Row
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context); // Close the sheet immediately
+                    widget.onHide(); // Call animated removal from parent PageView
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Row(
+                    children: [
+                      const Icon(
+                        LucideIcons.eyeOff,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        'Not Interested / Hide',
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Full-screen background gradient fallback / placeholder
+        // 1. Full-screen background placeholder (Pure Black #000000)
         Positioned.fill(
           child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: widget.video.colors,
-              ),
-            ),
+            color: const Color(0xFF000000),
           ),
         ),
 
-        // 2. Video Player Layer with exact Initialization Guard
-        if (_controller != null)
-          Positioned.fill(
-            child: _controller!.value.isInitialized
+        // 2. Video Player Layer with exact Initialization Guard & Gestures
+        Positioned.fill(
+          child: GestureDetector(
+            onTap: _togglePlayPause,
+            onDoubleTap: _triggerDoubleTapLike,
+            onLongPress: _showLongPressMenu,
+            behavior: HitTestBehavior.opaque,
+            child: _controller != null && _controller!.value.isInitialized
                 ? FittedBox(
                     fit: BoxFit.cover,
                     child: SizedBox(
@@ -428,12 +603,55 @@ class _FeedPostItemState extends State<FeedPostItem> {
                     ),
                   ),
           ),
+        ),
 
-        // Bottom-Left Content Overlay (User Name & Title)
+        // 3. Play Icon Overlay (rendered ONLY when initialized and actively paused)
+        if (_controller != null && _controller!.value.isInitialized && !_controller!.value.isPlaying)
+          IgnorePointer(
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.play_arrow,
+                  size: 48,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+
+        // 4. Large Minimalist White Heart Overlay for Double-Tap
+        IgnorePointer(
+          child: Center(
+            child: AnimatedScale(
+              scale: _showHeart ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.elasticOut,
+              child: AnimatedOpacity(
+                opacity: _showHeart ? 0.9 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: const Icon(
+                  Icons.favorite,
+                  size: 100,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(color: Colors.black38, blurRadius: 10),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        // 5. Bottom-Left Content Overlay (User Name & Title)
         Positioned(
-          bottom: 80, // Tightly positioned just above the bottom navigation bar
+          bottom: 80, // Tightly positioned just above bottom navigation bar
           left: 16,
-          right: 80, // Leaves room for the right interaction panel
+          right: 80, // Leaves room for right interaction panel
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -465,7 +683,7 @@ class _FeedPostItemState extends State<FeedPostItem> {
           ),
         ),
 
-        // Floating Interaction Panel (TikTok Style)
+        // 6. Floating Interaction Panel (TikTok Style)
         _InteractionPanel(video: widget.video),
       ],
     );
@@ -544,7 +762,7 @@ class _InteractionPanel extends StatelessWidget {
   void _showShareMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0A0A0A), // Extremely dark minimalist black
+      backgroundColor: const Color(0xFF000000), // Pure Black (#000000)
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -732,8 +950,9 @@ class _InteractionPanel extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           _buildInteractionButton(
-            LucideIcons.send, 
+            Icons.reply_outlined, 
             'Share', 
+            isMirrored: true,
             onTap: () => _showShareMenu(context),
           ),
         ],

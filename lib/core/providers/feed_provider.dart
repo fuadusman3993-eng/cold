@@ -261,4 +261,11 @@ class FeedProvider extends ChangeNotifier {
     _followingVideos.insert(0, video);
     notifyListeners();
   }
+
+  /// Removes a video by ID from both feeds
+  void removeVideo(String videoId) {
+    _followingVideos.removeWhere((v) => v.id == videoId);
+    _forYouVideos.removeWhere((v) => v.id == videoId);
+    notifyListeners();
+  }
 }
