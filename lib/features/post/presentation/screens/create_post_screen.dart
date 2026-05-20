@@ -66,13 +66,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   bool _isTimerActive = false;
   int _selectedDuration = 15; // 15, 60, 120
   bool _isFrontCamera = false;
-  String _selectedMode = '15S'; // '2M', '60S', '15S', 'PHOTO', 'TEXT'
+  String _selectedMode = '15s'; // '2m', '60s', '15s', 'photo', 'Text'
   bool _isRecordingSimulated = false;
+
+  // PageController for camera mode selector
+  late final PageController _modePageController;
 
   // New Creation Screen UI state variables
   String _activeTab = 'CREATE'; // 'Post' or 'CREATE'
   String _activeFilter = 'Normal'; // 'Normal', 'Vivid', 'B&W', 'Cold', 'Warm'
-  final List<String> _creationModes = ['2M', '60S', '15S', 'PHOTO', 'TEXT'];
+  final List<String> _creationModes = ['2m', '60s', '15s', 'photo', 'Text'];
   final TextEditingController _creationTextController = TextEditingController();
   int _activeGradientIndex = 0;
   
@@ -89,6 +92,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize PageController with default mode '15s' (index 2)
+    int initialIndex = _creationModes.indexOf(_selectedMode);
+    if (initialIndex == -1) initialIndex = 2;
+    _modePageController = PageController(
+      initialIndex: initialIndex,
+      viewportFraction: 0.25,
+    );
     _checkAndRequestPermissions();
   }
 
@@ -171,6 +181,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           _currentZoomLevel = 1.0;
         }
 
+        await _updateCameraMode();
+
         if (mounted) {
           setState(() {});
         }
@@ -182,6 +194,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   @override
   void dispose() {
+    _modePageController.dispose();
     _progressTimer?.cancel();
     _cameraController?.dispose();
     _videoController?.dispose();
@@ -354,12 +367,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   Future<void> _toggleRecording() async {
-    if (_selectedMode == 'TEXT') {
+    if (_selectedMode == 'Text') {
       _proceedTextToPreview();
       return;
     }
     
-    if (_selectedMode == 'PHOTO') {
+    if (_selectedMode == 'photo') {
       await _takePhoto();
       return;
     }
@@ -438,6 +451,37 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
   }
 
+  void _onModeChanged(String mode) {
+    if (_selectedMode == mode) return;
+    setState(() {
+      _selectedMode = mode;
+      if (mode == '15s') {
+        _selectedDuration = 15;
+      } else if (mode == '60s') {
+        _selectedDuration = 60;
+      } else if (mode == '2m') {
+        _selectedDuration = 120;
+      }
+    });
+    _updateCameraMode();
+  }
+
+  Future<void> _updateCameraMode() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) return;
+
+    final bool isVideoMode = _selectedMode == '15s' || _selectedMode == '60s' || _selectedMode == '2m';
+    if (isVideoMode) {
+      try {
+        await _cameraController!.prepareForVideoRecording();
+        debugPrint('Camera state updated: prepared for Video capture mode.');
+      } catch (e) {
+        debugPrint('Failed to prepare for video recording: $e');
+      }
+    } else if (_selectedMode == 'photo') {
+      debugPrint('Camera state updated: switched to Photo capture mode.');
+    }
+  }
+
   Future<void> _toggleFlash() async {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
       setState(() {
@@ -508,7 +552,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   Future<void> _handlePost() async {
-    final bool isTextMode = _selectedMode == 'TEXT';
+    final bool isTextMode = _selectedMode == 'Text';
     if (!isTextMode && _videoFile == null) return;
     if (_isUploading) return;
 
@@ -911,7 +955,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       );
     }
 
-    final bool isTextMode = _selectedMode == 'TEXT';
+    final bool isTextMode = _selectedMode == 'Text';
 
     return Stack(
       children: [
@@ -1273,41 +1317,41 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Row 1 (Modes): Horizontal creation modes
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: _creationModes.map((mode) {
+                SizedBox(
+                  height: 40,
+                  child: PageView.builder(
+                    controller: _modePageController,
+                    itemCount: _creationModes.length,
+                    physics: const BouncingScrollPhysics(),
+                    onPageChanged: (index) {
+                      _onModeChanged(_creationModes[index]);
+                    },
+                    itemBuilder: (context, index) {
+                      final mode = _creationModes[index];
                       final bool isActive = _selectedMode == mode;
                       return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
                         onTap: () {
-                          setState(() {
-                            _selectedMode = mode;
-                            if (mode == '15S') {
-                              _selectedDuration = 15;
-                            } else if (mode == '60S') {
-                              _selectedDuration = 60;
-                            } else if (mode == '2M') {
-                              _selectedDuration = 120;
-                            }
-                          });
+                          _modePageController.animateToPage(
+                            index,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
                         },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: Text(
-                            mode,
+                        child: Center(
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 200),
                             style: GoogleFonts.inter(
                               color: isActive ? Colors.white : Colors.white38,
                               fontWeight: FontWeight.w800,
                               fontSize: isActive ? 13 : 11,
                               letterSpacing: 1.0,
                             ),
+                            child: Text(mode),
                           ),
                         ),
                       );
-                    }).toList(),
+                    },
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1528,11 +1572,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Widget _buildModeText(String mode) {
     final bool isActive = _selectedMode == mode;
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedMode = mode;
-        });
-      },
+      onTap: () => _onModeChanged(mode),
       child: Text(
         mode,
         style: GoogleFonts.inter(
@@ -1547,7 +1587,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   // Previews selected video & shows Post controls
   Widget _buildPreviewView() {
-    final bool isTextMode = _selectedMode == 'TEXT';
+    final bool isTextMode = _selectedMode == 'Text';
     final String? path = _videoFile?.path.toLowerCase();
     final bool isPhoto = path != null && (
       path.endsWith('.jpg') ||
