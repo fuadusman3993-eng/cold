@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:cold/features/post/presentation/screens/create_post_screen.dart';
 import 'package:cold/core/utils/navigation_helper.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:cold/core/providers/feed_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/foundation.dart';
@@ -45,6 +46,49 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       duration: const Duration(milliseconds: 250),
       curve: Curves.fastOutSlowIn,
     );
+  }
+
+  Future<void> _handlePlusButtonTap(BuildContext context) async {
+    final cameraStatus = await Permission.camera.status;
+    final micStatus = await Permission.microphone.status;
+
+    if (cameraStatus.isGranted && micStatus.isGranted) {
+      if (context.mounted) {
+        Navigator.pushNamed(context, '/clean_camera_screen');
+      }
+      return;
+    }
+
+    final Map<Permission, PermissionStatus> statuses = await [
+      Permission.camera,
+      Permission.microphone,
+    ].request();
+
+    final isCameraGranted = statuses[Permission.camera]?.isGranted == true;
+    final isMicGranted = statuses[Permission.microphone]?.isGranted == true;
+
+    if (isCameraGranted && isMicGranted) {
+      if (context.mounted) {
+        Navigator.pushNamed(context, '/clean_camera_screen');
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF000000),
+            behavior: SnackBarBehavior.floating,
+            content: Text(
+              'Camera and Microphone permissions are required to create posts.',
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -142,12 +186,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               AnimatedScaleButton(
-                                onTap: () {
-                                  FeedNavigator.mapsTo(
-                                    context,
-                                    const CreatePostScreen(),
-                                  );
-                                },
+                                onTap: () => _handlePlusButtonTap(context),
                                 child: const Icon(LucideIcons.plus, color: Colors.white, size: 28),
                               ),
                               const SizedBox(width: 16),
@@ -683,12 +722,7 @@ class _InteractionPanel extends StatelessWidget {
           Positioned(
             bottom: 0,
             child: GestureDetector(
-              onTap: () {
-                FeedNavigator.mapsTo(
-                  context,
-                  const CreatePostScreen(),
-                );
-              },
+              onTap: () => _handlePlusButtonTap(context),
               child: Container(
                 padding: const EdgeInsets.all(2),
                 decoration: const BoxDecoration(

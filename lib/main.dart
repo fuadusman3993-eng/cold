@@ -7,6 +7,7 @@ import 'package:cold/core/localization/app_localizations.dart';
 import 'package:cold/core/localization/locale_provider.dart';
 import 'package:cold/core/widgets/initialization_screen.dart';
 import 'package:cold/core/providers/feed_provider.dart';
+import 'package:cold/features/post/presentation/screens/clean_camera_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,6 +57,9 @@ class ColdApp extends StatelessWidget {
       ],
       // First State: Minimalist Splash Screen
       home: const InitializationScreen(),
+      routes: {
+        '/clean_camera_screen': (context) => const CleanCameraScreen(),
+      },
     );
   }
 }
