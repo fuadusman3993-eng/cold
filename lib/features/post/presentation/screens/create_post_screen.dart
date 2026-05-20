@@ -96,7 +96,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     int initialIndex = _creationModes.indexOf(_selectedMode);
     if (initialIndex == -1) initialIndex = 2;
     _modePageController = PageController(
-      initialIndex: initialIndex,
+      initialPage: initialIndex,
       viewportFraction: 0.25,
     );
     _checkAndRequestPermissions();
