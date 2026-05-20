@@ -10,6 +10,49 @@ import 'package:flutter/foundation.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cold/core/utils/video_player_helper.dart';
 
+Future<void> _handlePlusButtonTap(BuildContext context) async {
+  final cameraStatus = await Permission.camera.status;
+  final micStatus = await Permission.microphone.status;
+
+  if (cameraStatus.isGranted && micStatus.isGranted) {
+    if (context.mounted) {
+      Navigator.pushNamed(context, '/clean_camera_screen');
+    }
+    return;
+  }
+
+  final Map<Permission, PermissionStatus> statuses = await [
+    Permission.camera,
+    Permission.microphone,
+  ].request();
+
+  final isCameraGranted = statuses[Permission.camera]?.isGranted == true;
+  final isMicGranted = statuses[Permission.microphone]?.isGranted == true;
+
+  if (isCameraGranted && isMicGranted) {
+    if (context.mounted) {
+      Navigator.pushNamed(context, '/clean_camera_screen');
+    }
+  } else {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF000000),
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            'Camera and Microphone permissions are required to create posts.',
+            style: GoogleFonts.inter(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      );
+    }
+  }
+}
+
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -46,49 +89,6 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       duration: const Duration(milliseconds: 250),
       curve: Curves.fastOutSlowIn,
     );
-  }
-
-  Future<void> _handlePlusButtonTap(BuildContext context) async {
-    final cameraStatus = await Permission.camera.status;
-    final micStatus = await Permission.microphone.status;
-
-    if (cameraStatus.isGranted && micStatus.isGranted) {
-      if (context.mounted) {
-        Navigator.pushNamed(context, '/clean_camera_screen');
-      }
-      return;
-    }
-
-    final Map<Permission, PermissionStatus> statuses = await [
-      Permission.camera,
-      Permission.microphone,
-    ].request();
-
-    final isCameraGranted = statuses[Permission.camera]?.isGranted == true;
-    final isMicGranted = statuses[Permission.microphone]?.isGranted == true;
-
-    if (isCameraGranted && isMicGranted) {
-      if (context.mounted) {
-        Navigator.pushNamed(context, '/clean_camera_screen');
-      }
-    } else {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: const Color(0xFF000000),
-            behavior: SnackBarBehavior.floating,
-            content: Text(
-              'Camera and Microphone permissions are required to create posts.',
-              style: GoogleFonts.inter(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-          ),
-        );
-      }
-    }
   }
 
   @override
