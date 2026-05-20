@@ -151,63 +151,89 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                     // Top Bar
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          // Left side: Cold Logo
-                          Text(
-                            'Cold',
-                            style: GoogleFonts.pacifico(
-                              color: Colors.white,
-                              fontSize: 24,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          // TikTok-Style Centered Tabs
-                          SizedBox(
-                            width: 220,
-                            child: TabBar(
-                              controller: _tabController,
-                              onTap: _handleTabTap,
-                              dividerColor: Colors.transparent, // Remove default flutter divider line
-                              indicator: UnderlineTabIndicator(
-                                borderSide: const BorderSide(color: Colors.white, width: 3.0),
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                              indicatorPadding: const EdgeInsets.symmetric(horizontal: 16),
-                              indicatorSize: TabBarIndicatorSize.label,
-                              labelColor: Colors.white,
-                              unselectedLabelColor: Colors.white60,
-                              labelStyle: GoogleFonts.inter(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 17,
-                                shadows: [const Shadow(color: Colors.black45, blurRadius: 4)],
-                              ),
-                              unselectedLabelStyle: GoogleFonts.inter(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                                shadows: [const Shadow(color: Colors.black45, blurRadius: 4)],
-                              ),
-                              tabs: const [
-                                Tab(text: "Following"),
-                                Tab(text: "For You"),
+                          // Left side: Cold Logo & Action (+)
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Cold',
+                                  style: GoogleFonts.pacifico(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    letterSpacing: 1.0,
+                                    shadows: [const Shadow(color: Colors.black45, blurRadius: 4)],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                AnimatedScaleButton(
+                                  onTap: () => ColdPermissionFlow.checkAndNavigate(context),
+                                  child: const Icon(LucideIcons.plus, color: Colors.white, size: 26, shadows: [Shadow(color: Colors.black45, blurRadius: 4)]),
+                                ),
                               ],
                             ),
                           ),
-                          // Right side: Actions (+ and Search)
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              AnimatedScaleButton(
-                                onTap: () => ColdPermissionFlow.checkAndNavigate(context),
-                                child: const Icon(LucideIcons.plus, color: Colors.white, size: 28),
-                              ),
-                              const SizedBox(width: 16),
-                              AnimatedScaleButton(
-                                onTap: () {},
-                                child: const Icon(LucideIcons.search, color: Colors.white, size: 28),
-                              ),
-                            ],
+                          // Center Alignment: Feed Toggles
+                          AnimatedBuilder(
+                            animation: _tabController,
+                            builder: (context, _) {
+                              return Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => _handleTabTap(0),
+                                    child: AnimatedDefaultTextStyle(
+                                      duration: const Duration(milliseconds: 250),
+                                      style: GoogleFonts.inter(
+                                        color: _tabController.index == 0 ? Colors.white : Colors.white60,
+                                        fontWeight: _tabController.index == 0 ? FontWeight.bold : FontWeight.w600,
+                                        fontSize: 17,
+                                        shadows: [const Shadow(color: Colors.black45, blurRadius: 4)],
+                                      ),
+                                      child: const Text('Following'),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                    child: Text(
+                                      '|',
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white38,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        shadows: [const Shadow(color: Colors.black45, blurRadius: 4)],
+                                      ),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () => _handleTabTap(1),
+                                    child: AnimatedDefaultTextStyle(
+                                      duration: const Duration(milliseconds: 250),
+                                      style: GoogleFonts.inter(
+                                        color: _tabController.index == 1 ? Colors.white : Colors.white60,
+                                        fontWeight: _tabController.index == 1 ? FontWeight.bold : FontWeight.w600,
+                                        fontSize: 17,
+                                        shadows: [const Shadow(color: Colors.black45, blurRadius: 4)],
+                                      ),
+                                      child: const Text('For You'),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                          // Right Alignment: Search Icon
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: AnimatedScaleButton(
+                              onTap: () {},
+                              child: const Icon(LucideIcons.search, color: Colors.white, size: 26, shadows: [Shadow(color: Colors.black45, blurRadius: 4)]),
+                            ),
                           ),
                         ],
                       ),
