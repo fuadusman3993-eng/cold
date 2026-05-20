@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:cold/features/post/presentation/screens/create_post_screen.dart';
 import 'package:cold/core/utils/navigation_helper.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cold/core/providers/feed_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/foundation.dart';
@@ -11,10 +12,21 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cold/core/utils/video_player_helper.dart';
 
 Future<void> _handlePlusButtonTap(BuildContext context) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  final bool hasGrantedPermissions = prefs.getBool('permissions_granted') ?? false;
+
+  if (hasGrantedPermissions) {
+    if (context.mounted) {
+      Navigator.pushNamed(context, '/clean_camera_screen');
+    }
+    return;
+  }
+
   final cameraStatus = await Permission.camera.status;
   final micStatus = await Permission.microphone.status;
 
   if (cameraStatus.isGranted && micStatus.isGranted) {
+    await prefs.setBool('permissions_granted', true);
     if (context.mounted) {
       Navigator.pushNamed(context, '/clean_camera_screen');
     }
@@ -30,6 +42,7 @@ Future<void> _handlePlusButtonTap(BuildContext context) async {
   final isMicGranted = statuses[Permission.microphone]?.isGranted == true;
 
   if (isCameraGranted && isMicGranted) {
+    await prefs.setBool('permissions_granted', true);
     if (context.mounted) {
       Navigator.pushNamed(context, '/clean_camera_screen');
     }
@@ -39,6 +52,7 @@ Future<void> _handlePlusButtonTap(BuildContext context) async {
         SnackBar(
           backgroundColor: const Color(0xFF000000),
           behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 80.0, left: 16.0, right: 16.0),
           content: Text(
             'Camera and Microphone permissions are required to create posts.',
             style: GoogleFonts.inter(
