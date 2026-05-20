@@ -17,7 +17,7 @@ Future<void> _handlePlusButtonTap(BuildContext context) async {
 
   if (hasGrantedPermissions) {
     if (context.mounted) {
-      Navigator.pushNamed(context, '/clean_camera_screen');
+      Navigator.of(context, rootNavigator: true).pushNamed('/clean_camera_screen');
     }
     return;
   }
@@ -28,7 +28,7 @@ Future<void> _handlePlusButtonTap(BuildContext context) async {
   if (cameraStatus.isGranted && micStatus.isGranted) {
     await prefs.setBool('permissions_granted', true);
     if (context.mounted) {
-      Navigator.pushNamed(context, '/clean_camera_screen');
+      Navigator.of(context, rootNavigator: true).pushNamed('/clean_camera_screen');
     }
     return;
   }
@@ -44,7 +44,7 @@ Future<void> _handlePlusButtonTap(BuildContext context) async {
   if (isCameraGranted && isMicGranted) {
     await prefs.setBool('permissions_granted', true);
     if (context.mounted) {
-      Navigator.pushNamed(context, '/clean_camera_screen');
+      Navigator.of(context, rootNavigator: true).pushNamed('/clean_camera_screen');
     }
   } else {
     if (context.mounted) {
